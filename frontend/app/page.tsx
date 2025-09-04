@@ -114,7 +114,7 @@ export default function Home() {
   const handleDemoMode = () => {
     setWalletAddress(demoWalletAddress)
     setIsDemoMode(true)
-    alert('Demo mode activated!')
+    // Remove alert for better UX
   }
 
   const features = [
@@ -122,75 +122,101 @@ export default function Home() {
       icon: Shield,
       title: 'Intelligent Risk Analysis',
       description: 'Advanced AI to detect anomalies and calculate real-time risk metrics',
-      color: 'text-blue-600'
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      hoverGlow: 'hover:shadow-lg hover:border-cyan-500'
     },
     {
       icon: TrendingUp,
       title: 'Auto-Rebalancing',
       description: 'Automatic rebalancing based on customizable thresholds',
-      color: 'text-green-600'
+      color: 'text-green-600',
+      bgColor: 'bg-green-50',
+      hoverGlow: 'hover:shadow-lg hover:border-cyan-500'
     },
     {
       icon: AlertTriangle,
       title: 'Proactive Alerts',
       description: 'Instant notifications about risk changes and opportunities',
-      color: 'text-orange-600'
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      hoverGlow: 'hover:shadow-lg hover:border-cyan-500'
     },
     {
       icon: BarChart3,
       title: 'Intuitive Dashboard',
       description: 'Modern and responsive interface for portfolio management',
-      color: 'text-purple-600'
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      hoverGlow: 'hover:shadow-lg hover:border-cyan-500'
     }
   ]
 
+  // Remove hydration check to fix white page issue
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
 
       {!walletAddress ? (
         // Landing Page
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
-          <div className="text-center py-20">
-            <div className="flex justify-center mb-8">
-              <div className="p-4 bg-blue-100 rounded-full">
-                <Shield className="h-16 w-16 text-blue-600" />
+          <div className="text-center py-20 relative overflow-hidden">
+            {/* Background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-stellar/10 via-stellar-800/10 to-dark-gray/10"></div>
+            
+            <div className="relative z-10">
+              <div className="flex justify-center mb-8">
+                <div className="p-8 bg-gradient-to-br from-blue-900 to-cyan-500 rounded-full shadow-2xl animate-float border-4 border-white">
+                  <Shield className="h-24 w-24 text-white drop-shadow-lg" />
+                </div>
               </div>
-            </div>
-            
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Risk Guardian
-            </h1>
-            
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Intelligent DeFi risk management system using AI, 
-              Reflector Oracle data and Stellar infrastructure
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <form onSubmit={handleWalletSubmit} className="flex gap-2">
-                <input
-                  type="text"
-                  value={walletAddress}
-                  onChange={(e) => setWalletAddress(e.target.value)}
-                  placeholder="Enter your Stellar address..."
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-80"
-                />
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50"
-                >
-                  {isLoading ? 'Connecting...' : 'Connect'}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </form>
+              
+              <h1 className="text-4xl md:text-6xl font-extrabold text-black mb-6 animate-fade-in">
+                Risk Guardian
+              </h1>
+              
+              <div className="text-lg md:text-xl text-gray-800 mb-2 font-bold">
+                AI-powered DeFi Risk Management
+              </div>
+              <div className="text-lg md:text-xl text-gray-800 mb-12 max-w-4xl mx-auto font-bold">
+                Using Reflector Oracle and Stellar Infrastructure
+              </div>
+              
+              <div className="max-w-2xl mx-auto mb-8">
+                <label className="block text-sm font-bold text-black mb-3 text-left">
+                  Connect your wallet
+                </label>
+                <form onSubmit={handleWalletSubmit} className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="text"
+                    value={walletAddress}
+                    onChange={(e) => setWalletAddress(e.target.value)}
+                    placeholder="Enter your Stellar address..."
+                    className="flex-1 px-6 py-4 border-2 border-gray-400 rounded-xl focus:ring-2 focus:ring-reflector focus:border-reflector transition-all duration-300 text-lg bg-white shadow-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="px-8 py-4 bg-gradient-to-r from-blue-900 to-cyan-500 text-white rounded-xl hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 transition-all duration-300 font-semibold text-lg min-w-[140px]"
+                  >
+                    {isLoading ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    ) : (
+                      <>
+                        Connect
+                        <span className="text-lg">🔗</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
               
               <button
                 onClick={handleDemoMode}
-                className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
+                className="px-8 py-4 bg-gray-700 text-white rounded-xl hover:bg-gray-800 hover:shadow-xl flex items-center gap-3 mx-auto transition-all duration-300 font-semibold text-lg"
               >
-                <Star className="h-4 w-4" />
+                <span className="text-lg">⭐</span>
                 Demo Mode
               </button>
             </div>
@@ -199,25 +225,25 @@ export default function Home() {
           {/* Features Section */}
           <div className="py-20">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              <h2 className="text-4xl font-extrabold text-black mb-6">
                 Why choose Risk Guardian?
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              <p className="text-xl text-gray-800 max-w-3xl mx-auto font-semibold">
                 We combine artificial intelligence, reliable data and automation 
                 to protect your DeFi investments
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               {features.map((feature, index) => (
-                <div key={index} className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow">
-                  <div className={`p-3 bg-gray-100 rounded-lg w-fit mb-4`}>
-                    <feature.icon className={`h-6 w-6 ${feature.color}`} />
+                <div key={index} className={`bg-white p-6 lg:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 ${feature.hoverGlow} group`}>
+                  <div className={`p-3 lg:p-4 ${feature.bgColor} rounded-xl w-fit mb-4 lg:mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                    <feature.icon className={`h-6 w-6 lg:h-8 lg:w-8 ${feature.color}`} />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="text-lg font-bold text-black mb-3 group-hover:text-blue-600 transition-colors duration-300">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-800 leading-relaxed font-medium">
                     {feature.description}
                   </p>
                 </div>
@@ -226,32 +252,52 @@ export default function Home() {
           </div>
 
           {/* CTA Section */}
-          <div className="py-20 bg-blue-600 rounded-2xl text-center text-white">
-            <Zap className="h-12 w-12 mx-auto mb-6" />
-            <h2 className="text-3xl font-bold mb-4">
-              Ready to protect your portfolio?
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              Connect your Stellar wallet and start using the most advanced risk management system
-            </p>
-            <button
-              onClick={() => document.querySelector('input')?.focus()}
-              className="px-8 py-4 bg-white text-blue-600 rounded-lg hover:bg-gray-100 font-semibold"
-            >
-              Get Started Now
-            </button>
+          <div className="py-20 bg-gradient-to-br from-blue-900 via-blue-800 to-cyan-600 rounded-3xl text-center text-white relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-cyan-500/50"></div>
+            <div className="relative z-10">
+              <div className="p-6 bg-white/20 rounded-full w-fit mx-auto mb-8 animate-pulse shadow-lg border-2 border-white/30">
+                <Zap className="h-20 w-20 text-white drop-shadow-lg" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white drop-shadow-lg">
+                Ready to protect your portfolio?
+              </h2>
+              <p className="text-xl md:text-2xl mb-10 text-white max-w-3xl mx-auto font-semibold drop-shadow-lg">
+                Connect your Stellar wallet and start using the most advanced risk management system
+              </p>
+                              <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined') {
+                      document.querySelector('input')?.focus()
+                    }
+                  }}
+                  className="px-10 py-5 bg-white text-blue-900 rounded-xl hover:bg-gray-100 hover:shadow-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105"
+                >
+                  Get Started Now
+                </button>
+            </div>
           </div>
         </div>
       ) : (
         // Dashboard
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {isDemoMode && (
-            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-blue-600" />
-                <span className="text-blue-800 font-medium">Demo Mode Active</span>
+            <div className="mb-6 p-4 bg-gradient-to-r from-reflector/10 to-reflector/5 border border-reflector/20 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Star className="h-5 w-5 text-reflector" />
+                  <span className="text-reflector font-bold">Demo Mode Active</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setWalletAddress('')
+                    setIsDemoMode(false)
+                  }}
+                  className="px-4 py-2 text-sm bg-white text-reflector rounded-lg hover:bg-reflector/10 transition-all duration-300 font-medium"
+                >
+                  Reset
+                </button>
               </div>
-              <p className="text-blue-700 text-sm mt-1">
+              <p className="text-gray-700 text-sm mt-2">
                 You are viewing demo data. Connect a real wallet to use the complete system.
               </p>
             </div>
