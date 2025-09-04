@@ -1,180 +1,180 @@
 # DeFi Risk Guardian - Backend
 
-Backend API para o sistema de gestão de risco em DeFi, construído com FastAPI e integração com Stellar/Reflector.
+Backend API for the DeFi risk management system, built with FastAPI and Stellar/Reflector integration.
 
 ## 🚀 Quick Start
 
-### 1. Setup do Ambiente
+### 1. Environment Setup
 
 ```bash
-# Clone o repositório
+# Clone the repository
 cd backend
 
-# Crie um ambiente virtual
+# Create a virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# ou
+# or
 venv\Scripts\activate     # Windows
 
-# Instale as dependências
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Configuração
+### 2. Configuration
 
 ```bash
-# Copie o arquivo de exemplo
+# Copy the example file
 cp env.example .env
 
-# Edite as variáveis de ambiente
+# Edit environment variables
 nano .env
 ```
 
-### 3. Banco de Dados
+### 3. Database
 
 ```bash
-# Instale PostgreSQL e Redis
+# Install PostgreSQL and Redis
 # Ubuntu/Debian:
 sudo apt-get install postgresql redis-server
 
 # macOS:
 brew install postgresql redis
 
-# Crie o banco de dados
+# Create the database
 createdb defi_risk
 
-# Execute as migrações (quando disponíveis)
+# Run migrations (when available)
 alembic upgrade head
 ```
 
-### 4. Executar a Aplicação
+### 4. Run the Application
 
 ```bash
-# Desenvolvimento
+# Development
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Produção
+# Production
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 ## 📚 API Documentation
 
-Após iniciar o servidor, acesse:
+After starting the server, access:
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
-## 🏗️ Estrutura do Projeto
+## 🏗️ Project Structure
 
 ```
 backend/
 ├── app/
-│   ├── main.py                 # Entry point da aplicação
+│   ├── main.py                 # Application entry point
 │   ├── core/
-│   │   ├── config.py          # Configurações
-│   │   ├── database.py        # Conexão com banco
-│   │   └── security.py        # Autenticação
+│   │   ├── config.py          # Configuration
+│   │   ├── database.py        # Database connection
+│   │   └── security.py        # Authentication
 │   ├── api/
 │   │   └── v1/
-│   │       ├── portfolio.py   # Endpoints de portfólio
-│   │       ├── risk.py        # Análise de risco
-│   │       ├── alerts.py      # Sistema de alertas
-│   │       └── rebalance.py   # Rebalanceamento
+│   │       ├── portfolio.py   # Portfolio endpoints
+│   │       ├── risk.py        # Risk analysis
+│   │       ├── alerts.py      # Alert system
+│   │       └── rebalance.py   # Rebalancing
 │   ├── services/
-│   │   ├── reflector.py       # Cliente Reflector Oracle
-│   │   ├── stellar.py         # Cliente Stellar SDK
-│   │   └── risk_analyzer.py   # Análise de risco
+│   │   ├── reflector.py       # Reflector Oracle client
+│   │   ├── stellar.py         # Stellar SDK client
+│   │   └── risk_analyzer.py   # Risk analysis
 │   ├── models/
-│   │   ├── database.py        # Modelos SQLAlchemy
+│   │   ├── database.py        # SQLAlchemy models
 │   │   └── schemas.py         # Pydantic schemas
 │   └── utils/
-│       └── helpers.py         # Funções auxiliares
-├── tests/                     # Testes
-├── requirements.txt           # Dependências Python
-└── README.md                  # Este arquivo
+│       └── helpers.py         # Helper functions
+├── tests/                     # Tests
+├── requirements.txt           # Python dependencies
+└── README.md                  # This file
 ```
 
-## 🔧 Endpoints Principais
+## 🔧 Main Endpoints
 
 ### Portfolio
-- `POST /api/v1/portfolio/users` - Criar usuário
-- `GET /api/v1/portfolio/{wallet_address}` - Buscar portfólio
-- `POST /api/v1/portfolio/{wallet_address}/assets` - Adicionar ativo
+- `POST /api/v1/portfolio/users` - Create user
+- `GET /api/v1/portfolio/{wallet_address}` - Get portfolio
+- `POST /api/v1/portfolio/{wallet_address}/assets` - Add asset
 
 ### Risk Analysis
-- `POST /api/v1/risk/analyze` - Análise completa de risco
-- `GET /api/v1/risk/{wallet_address}/metrics` - Métricas de risco
+- `POST /api/v1/risk/analyze` - Complete risk analysis
+- `GET /api/v1/risk/{wallet_address}/metrics` - Risk metrics
 
 ### Alerts
-- `GET /api/v1/alerts/{wallet_address}` - Buscar alertas
-- `GET /api/v1/alerts/{wallet_address}/active` - Alertas ativos
-- `POST /api/v1/alerts/{wallet_address}` - Criar alerta
+- `GET /api/v1/alerts/{wallet_address}` - Get alerts
+- `GET /api/v1/alerts/{wallet_address}/active` - Active alerts
+- `POST /api/v1/alerts/{wallet_address}` - Create alert
 
 ### Rebalancing
-- `POST /api/v1/rebalance/suggest` - Sugerir rebalanceamento
-- `POST /api/v1/rebalance/execute` - Executar rebalanceamento
-- `GET /api/v1/rebalance/{wallet_address}/history` - Histórico
+- `POST /api/v1/rebalance/suggest` - Suggest rebalancing
+- `POST /api/v1/rebalance/execute` - Execute rebalancing
+- `GET /api/v1/rebalance/{wallet_address}/history` - History
 
-## 🧪 Testes
+## 🧪 Testing
 
 ```bash
-# Executar todos os testes
+# Run all tests
 pytest
 
-# Executar com coverage
+# Run with coverage
 pytest --cov=app
 
-# Executar testes específicos
+# Run specific tests
 pytest tests/test_portfolio.py
 ```
 
 ## 🐳 Docker
 
 ```bash
-# Build da imagem
+# Build image
 docker build -t defi-risk-guardian-backend .
 
-# Executar container
+# Run container
 docker run -p 8000:8000 defi-risk-guardian-backend
 ```
 
-## 📊 Monitoramento
+## 📊 Monitoring
 
 - **Health Check**: `GET /health`
-- **Metrics**: `GET /metrics` (quando implementado)
-- **Logs**: Estruturados com loguru
+- **Metrics**: `GET /metrics` (when implemented)
+- **Logs**: Structured with loguru
 
-## 🔒 Segurança
+## 🔒 Security
 
-- **CORS**: Configurado para frontend
-- **Rate Limiting**: Implementado
+- **CORS**: Configured for frontend
+- **Rate Limiting**: Implemented
 - **Input Validation**: Pydantic schemas
-- **SQL Injection**: Protegido com SQLAlchemy
+- **SQL Injection**: Protected with SQLAlchemy
 
-## 🚀 Deploy
+## 🚀 Deployment
 
 ### Railway/Render
 ```bash
-# Configure as variáveis de ambiente
+# Configure environment variables
 # DATABASE_URL, REDIS_URL, REFLECTOR_API_KEY
 
-# Deploy automático via Git
+# Automatic deployment via Git
 git push origin main
 ```
 
 ### Docker Compose
 ```bash
-# Executar stack completo
+# Run complete stack
 docker-compose up -d
 ```
 
-## 🤝 Contribuição
+## 🤝 Contributing
 
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create a branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
 
-## 📝 Licença
+## 📝 License
 
-MIT License - veja [LICENSE](../LICENSE) para detalhes.
+MIT License - see [LICENSE](../LICENSE) for details.
