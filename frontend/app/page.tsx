@@ -8,7 +8,10 @@ import {
   BarChart3,
   ArrowRight,
   Star,
-  Zap
+  Zap,
+  Twitter,
+  MessageCircle,
+  Github
 } from 'lucide-react'
 import { PortfolioCard } from './components/dashboard/PortfolioCard'
 import { RiskMetrics } from './components/dashboard/RiskMetrics'
@@ -294,15 +297,30 @@ export default function Home() {
                     AI-powered DeFi risk management system using Reflector Oracle and Stellar infrastructure to protect your investments.
                   </p>
                   <div className="flex space-x-4">
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-xs font-bold text-gray-600">T</span>
-                    </div>
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-xs font-bold text-gray-600">D</span>
-                    </div>
-                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-xs font-bold text-gray-600">G</span>
-                    </div>
+                    <a 
+                      href="https://twitter.com/riskguardian" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 bg-gray-200 hover:bg-blue-100 rounded-full flex items-center justify-center transition-colors duration-200"
+                    >
+                      <Twitter className="h-4 w-4 text-gray-600 hover:text-blue-600" />
+                    </a>
+                    <a 
+                      href="https://discord.gg/riskguardian" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 bg-gray-200 hover:bg-indigo-100 rounded-full flex items-center justify-center transition-colors duration-200"
+                    >
+                      <MessageCircle className="h-4 w-4 text-gray-600 hover:text-indigo-600" />
+                    </a>
+                    <a 
+                      href="https://github.com/riskguardian" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 bg-gray-200 hover:bg-gray-800 rounded-full flex items-center justify-center transition-colors duration-200"
+                    >
+                      <Github className="h-4 w-4 text-gray-600 hover:text-white" />
+                    </a>
                   </div>
                 </div>
                 
