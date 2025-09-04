@@ -1,69 +1,69 @@
 # DeFi Risk Guardian - Frontend
 
-Frontend moderno para o sistema de gestão de risco em DeFi, construído com Next.js, TypeScript e Tailwind CSS.
+Modern frontend for the DeFi risk management system, built with Next.js, TypeScript and Tailwind CSS.
 
 ## 🚀 Quick Start
 
-### 1. Instalação
+### 1. Installation
 
 ```bash
-# Navegue para o diretório frontend
+# Navigate to the frontend directory
 cd frontend
 
-# Instale as dependências
+# Install dependencies
 npm install
-# ou
+# or
 yarn install
 ```
 
-### 2. Configuração
+### 2. Configuration
 
 ```bash
-# Copie o arquivo de exemplo
-cp .env.example .env.local
+# Copy the example file
+cp env.local.example .env.local
 
-# Edite as variáveis de ambiente
+# Edit environment variables
 nano .env.local
 ```
 
-### 3. Executar em Desenvolvimento
+### 3. Run in Development
 
 ```bash
-# Modo desenvolvimento
+# Development mode
 npm run dev
-# ou
+# or
 yarn dev
 
-# Acesse http://localhost:3000
+# Access http://localhost:3000
 ```
 
-### 4. Build para Produção
+### 4. Build for Production
 
 ```bash
 # Build
 npm run build
-# ou
+# or
 yarn build
 
-# Executar build
+# Run build
 npm start
-# ou
+# or
 yarn start
 ```
 
-## 🏗️ Estrutura do Projeto
+## 🏗️ Project Structure
 
 ```
 frontend/
 ├── pages/
 │   ├── _app.tsx              # App wrapper
-│   ├── index.tsx             # Página inicial
-│   ├── portfolio.tsx         # Gestão de portfólio
-│   ├── alerts.tsx            # Centro de alertas
-│   └── settings.tsx          # Configurações
+│   ├── index.tsx             # Home page
+│   ├── portfolio.tsx         # Portfolio management
+│   ├── alerts.tsx            # Alert center
+│   └── settings.tsx          # Settings
 ├── components/
 │   ├── common/
-│   │   ├── Header.tsx        # Cabeçalho
+│   │   ├── Header.tsx        # Header
 │   │   ├── LoadingSpinner.tsx
 │   │   └── Sidebar.tsx
 │   ├── dashboard/
@@ -75,15 +75,15 @@ frontend/
 │       ├── RebalanceModal.tsx
 │       └── AllocationSlider.tsx
 ├── hooks/
-│   ├── useWebSocket.ts       # Conexão WebSocket
-│   ├── usePortfolio.ts       # Estado do portfólio
-│   └── useRiskAnalysis.ts    # Análise de risco
+│   ├── useWebSocket.ts       # WebSocket connection
+│   ├── usePortfolio.ts       # Portfolio state
+│   └── useRiskAnalysis.ts    # Risk analysis
 ├── utils/
-│   ├── api.ts                # Cliente API
-│   ├── formatters.ts         # Formatação de dados
-│   └── constants.ts          # Constantes
+│   ├── api.ts                # API client
+│   ├── formatters.ts         # Data formatting
+│   └── constants.ts          # Constants
 ├── styles/
-│   └── globals.css           # Estilos globais
+│   └── globals.css           # Global styles
 ├── package.json
 ├── tailwind.config.js
 ├── next.config.js
@@ -92,57 +92,57 @@ frontend/
 
 ## 🎨 Design System
 
-### Cores
+### Colors
 - **Primary**: Blue (600, 700, 800)
 - **Success**: Green (500, 600, 700)
 - **Warning**: Orange (500, 600, 700)
 - **Danger**: Red (500, 600, 700)
 - **Stellar**: Blue variants
 
-### Componentes
+### Components
 - **Cards**: `card`, `card-hover`
 - **Buttons**: `btn`, `btn-primary`, `btn-secondary`
 - **Badges**: `badge`, `badge-success`, `badge-warning`
 - **Risk Indicators**: `risk-indicator`, `risk-low`, `risk-high`
 
-### Tipografia
+### Typography
 - **Font Family**: Inter (sans-serif)
 - **Monospace**: JetBrains Mono
 
-## 📱 Responsividade
+## 📱 Responsiveness
 
-- **Mobile First**: Design otimizado para mobile
+- **Mobile First**: Mobile-optimized design
 - **Breakpoints**: sm (640px), md (768px), lg (1024px), xl (1280px)
 - **Grid System**: CSS Grid + Flexbox
-- **Touch Friendly**: Botões e controles otimizados
+- **Touch Friendly**: Optimized buttons and controls
 
-## 🔧 Funcionalidades
+## 🔧 Features
 
-### Dashboard Principal
-- ✅ Visão geral do portfólio
-- ✅ Métricas de risco em tempo real
-- ✅ Timeline de alertas
-- ✅ Gráficos interativos
+### Main Dashboard
+- ✅ Portfolio overview
+- ✅ Real-time risk metrics
+- ✅ Alert timeline
+- ✅ Interactive charts
 
-### Gestão de Portfólio
-- ✅ Lista de ativos
-- ✅ Alocação atual vs target
-- ✅ Adicionar/remover ativos
-- ✅ Configurar alocações
+### Portfolio Management
+- ✅ Asset list
+- ✅ Current vs target allocation
+- ✅ Add/remove assets
+- ✅ Configure allocations
 
-### Sistema de Alertas
-- ✅ Alertas em tempo real
-- ✅ Filtros por severidade
-- ✅ Resolver/ignorar alertas
-- ✅ Histórico de alertas
+### Alert System
+- ✅ Real-time alerts
+- ✅ Severity filters
+- ✅ Resolve/ignore alerts
+- ✅ Alert history
 
-### Análise de Risco
-- ✅ Métricas avançadas (VaR, Sharpe, Beta)
-- ✅ Score de risco geral
-- ✅ Recomendações de IA
-- ✅ Simulação de cenários
+### Risk Analysis
+- ✅ Advanced metrics (VaR, Sharpe, Beta)
+- ✅ Overall risk score
+- ✅ AI recommendations
+- ✅ Scenario simulation
 
-## 🎯 Componentes Principais
+## 🎯 Main Components
 
 ### PortfolioCard
 ```tsx
@@ -170,19 +170,19 @@ frontend/
 />
 ```
 
-## 🔌 Integração com API
+## 🔌 API Integration
 
-### Cliente HTTP
+### HTTP Client
 ```tsx
 import { api } from '../utils/api'
 
-// Buscar portfólio
+// Get portfolio
 const portfolio = await api.getPortfolio(walletAddress)
 
-// Análise de risco
+// Risk analysis
 const riskAnalysis = await api.analyzeRisk(walletAddress)
 
-// Alertas
+// Alerts
 const alerts = await api.getAlerts(walletAddress)
 ```
 
@@ -197,22 +197,22 @@ const { data: portfolio, isLoading, error } = useQuery(
 )
 ```
 
-## 🎨 Customização
+## 🎨 Customization
 
-### Tema
-Edite `tailwind.config.js` para personalizar:
-- Cores
-- Fontes
-- Espaçamentos
-- Animações
+### Theme
+Edit `tailwind.config.js` to customize:
+- Colors
+- Fonts
+- Spacing
+- Animations
 
-### Componentes
-Todos os componentes são modulares e reutilizáveis:
-- Props tipadas com TypeScript
-- Estilos com Tailwind CSS
-- Estados gerenciados com React Query
+### Components
+All components are modular and reusable:
+- TypeScript typed props
+- Tailwind CSS styles
+- State managed with React Query
 
-## 📊 Gráficos
+## 📊 Charts
 
 ### Recharts
 ```tsx
@@ -223,23 +223,23 @@ import { PieChart, LineChart, BarChart } from 'recharts'
 </PieChart>
 ```
 
-### Tipos de Gráficos
-- **Pie Chart**: Distribuição de ativos
-- **Line Chart**: Evolução de preços
-- **Bar Chart**: Métricas de risco
-- **Area Chart**: Performance histórica
+### Chart Types
+- **Pie Chart**: Asset distribution
+- **Line Chart**: Price evolution
+- **Bar Chart**: Risk metrics
+- **Area Chart**: Historical performance
 
-## 🚀 Deploy
+## 🚀 Deployment
 
-### Vercel (Recomendado)
+### Vercel (Recommended)
 ```bash
-# Instalar Vercel CLI
+# Install Vercel CLI
 npm i -g vercel
 
 # Deploy
 vercel
 
-# Deploy com domínio customizado
+# Deploy with custom domain
 vercel --prod
 ```
 
@@ -248,7 +248,7 @@ vercel --prod
 # Build
 npm run build
 
-# Deploy pasta 'out'
+# Deploy 'out' folder
 ```
 
 ### Docker
@@ -263,22 +263,22 @@ EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
-## 🧪 Testes
+## 🧪 Testing
 
 ```bash
-# Executar testes
+# Run tests
 npm test
 
-# Testes com coverage
+# Tests with coverage
 npm run test:coverage
 
-# Testes E2E
+# E2E tests
 npm run test:e2e
 ```
 
 ## 📱 PWA (Progressive Web App)
 
-### Configuração
+### Configuration
 ```javascript
 // next.config.js
 const withPWA = require('next-pwa')({
@@ -292,40 +292,40 @@ module.exports = withPWA({
 })
 ```
 
-### Features PWA
+### PWA Features
 - ✅ Offline support
 - ✅ Push notifications
 - ✅ Install prompt
 - ✅ App-like experience
 
-## 🔒 Segurança
+## 🔒 Security
 
-- **HTTPS**: Obrigatório em produção
+- **HTTPS**: Required in production
 - **CSP**: Content Security Policy
-- **XSS Protection**: Sanitização de inputs
-- **CSRF Protection**: Tokens de segurança
+- **XSS Protection**: Input sanitization
+- **CSRF Protection**: Security tokens
 
 ## 📈 Performance
 
-### Otimizações
-- **Code Splitting**: Lazy loading de componentes
+### Optimizations
+- **Code Splitting**: Component lazy loading
 - **Image Optimization**: Next.js Image component
 - **Bundle Analysis**: `@next/bundle-analyzer`
 - **Caching**: React Query + SWR
 
-### Métricas
+### Metrics
 - **LCP**: Largest Contentful Paint
 - **FID**: First Input Delay
 - **CLS**: Cumulative Layout Shift
 
-## 🤝 Contribuição
+## 🤝 Contributing
 
-1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Abra um Pull Request
+1. Fork the project
+2. Create a branch (`git checkout -b feature/new-feature`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature/new-feature`)
+5. Open a Pull Request
 
-## 📝 Licença
+## 📝 License
 
-MIT License - veja [LICENSE](../LICENSE) para detalhes.
+MIT License - see [LICENSE](../LICENSE) for details.
