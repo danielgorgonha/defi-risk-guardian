@@ -14,6 +14,7 @@ import { PortfolioCard } from './components/dashboard/PortfolioCard'
 import { RiskMetrics } from './components/dashboard/RiskMetrics'
 import { AlertTimeline } from './components/dashboard/AlertTimeline'
 import { LoadingSpinner } from './components/common/LoadingSpinner'
+import { useToast } from './components/common/ToastProvider'
 
 // Mock data for demo
 const mockPortfolio = {
@@ -92,6 +93,7 @@ export default function Home() {
   const [walletAddress, setWalletAddress] = useState('')
   const [isDemoMode, setIsDemoMode] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const toast = useToast()
 
   // Demo data
   const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -99,7 +101,7 @@ export default function Home() {
   const handleWalletSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!walletAddress.trim()) {
-      alert('Please enter a wallet address')
+      toast.showError('Validation Error', 'Please enter a wallet address')
       return
     }
     
@@ -107,14 +109,14 @@ export default function Home() {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false)
-      alert('Wallet connected successfully!')
+      toast.showSuccess('Wallet Connected', 'Your Stellar wallet has been connected successfully!')
     }, 1000)
   }
 
   const handleDemoMode = () => {
     setWalletAddress(demoWalletAddress)
     setIsDemoMode(true)
-    // Remove alert for better UX
+    toast.showInfo('Demo Mode Activated', 'You are now viewing demo data. Connect a real wallet for live data.')
   }
 
   const features = [
