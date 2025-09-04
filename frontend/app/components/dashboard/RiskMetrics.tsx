@@ -27,10 +27,10 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
   } = riskAnalysis
 
   const getRiskColor = (score: number) => {
-    if (score < 30) return 'text-green-600 bg-green-100'
-    if (score < 60) return 'text-orange-600 bg-orange-100'
-    if (score < 80) return 'text-red-600 bg-red-100'
-    return 'text-red-800 bg-red-200'
+    if (score < 30) return 'text-risk-green bg-risk-green/10 border-risk-green/20'
+    if (score < 60) return 'text-risk-yellow bg-risk-yellow/10 border-risk-yellow/20'
+    if (score < 80) return 'text-risk-red bg-risk-red/10 border-risk-red/20'
+    return 'text-risk-red bg-risk-red/20 border-risk-red/30'
   }
 
   const getRiskLabel = (score: number) => {
@@ -46,47 +46,51 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       value: formatCurrency(var_95),
       description: 'Perda máxima esperada em 95% dos cenários',
       icon: TrendingDown,
-      color: 'text-red-600 bg-red-100'
+      color: 'text-risk-red bg-risk-red/10',
+      hoverGlow: 'hover:shadow-glow-red'
     },
     {
       title: 'Volatilidade',
       value: formatPercentage(volatility),
       description: 'Volatilidade anual do portfólio',
       icon: Activity,
-      color: 'text-orange-600 bg-orange-100'
+      color: 'text-risk-yellow bg-risk-yellow/10',
+      hoverGlow: 'hover:shadow-glow-yellow'
     },
     {
       title: 'Sharpe Ratio',
       value: sharpe_ratio.toFixed(2),
       description: 'Retorno ajustado ao risco',
       icon: BarChart3,
-      color: sharpe_ratio > 1 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'
+      color: sharpe_ratio > 1 ? 'text-risk-green bg-risk-green/10' : 'text-risk-red bg-risk-red/10',
+      hoverGlow: sharpe_ratio > 1 ? 'hover:shadow-glow-green' : 'hover:shadow-glow-red'
     },
     {
       title: 'Beta',
       value: beta.toFixed(2),
       description: 'Correlação com o mercado (XLM)',
       icon: Target,
-      color: beta > 1 ? 'text-orange-600 bg-orange-100' : 'text-blue-600 bg-blue-100'
+      color: beta > 1 ? 'text-risk-yellow bg-risk-yellow/10' : 'text-stellar bg-stellar/10',
+      hoverGlow: beta > 1 ? 'hover:shadow-glow-yellow' : 'hover:shadow-glow-stellar'
     }
   ]
 
   return (
     <div className="space-y-6">
       {/* Risk Score Card */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-            <Shield className="h-5 w-5 mr-2" />
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-dark-gray flex items-center">
+            <Shield className="h-6 w-6 mr-3 text-stellar" />
             Score de Risco
           </h3>
-          <div className={`px-3 py-1 rounded-full text-sm font-medium ${getRiskColor(risk_score)}`}>
+          <div className={`px-4 py-2 rounded-xl text-sm font-medium border ${getRiskColor(risk_score)}`}>
             {getRiskLabel(risk_score)}
           </div>
         </div>
         
         <div className="text-center">
-          <div className="text-4xl font-bold text-gray-900 mb-2">
+          <div className="text-5xl font-bold text-dark-gray mb-3">
             {risk_score.toFixed(1)}%
           </div>
           <p className="text-sm text-gray-600">
@@ -95,13 +99,13 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
         </div>
 
         {/* Risk Score Bar */}
-        <div className="mt-4">
-          <div className="w-full bg-gray-200 rounded-full h-2">
+        <div className="mt-6">
+          <div className="w-full bg-gray-200 rounded-full h-3">
             <div 
-              className={`h-2 rounded-full transition-all duration-300 ${
-                risk_score < 30 ? 'bg-green-500' :
-                risk_score < 60 ? 'bg-orange-500' :
-                risk_score < 80 ? 'bg-red-500' : 'bg-red-700'
+              className={`h-3 rounded-full transition-all duration-500 ${
+                risk_score < 30 ? 'bg-risk-green' :
+                risk_score < 60 ? 'bg-risk-yellow' :
+                risk_score < 80 ? 'bg-risk-red' : 'bg-risk-red'
               }`}
               style={{ width: `${Math.min(risk_score, 100)}%` }}
             />
@@ -112,14 +116,14 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       {/* Risk Metrics Grid */}
       <div className="grid grid-cols-1 gap-4">
         {metrics.map((metric, index) => (
-          <div key={index} className="card">
+          <div key={index} className={`bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-all duration-300 ${metric.hoverGlow}`}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-lg ${metric.color}`}>
-                  <metric.icon className="h-4 w-4" />
+              <div className="flex items-center space-x-4">
+                <div className={`p-3 rounded-xl ${metric.color}`}>
+                  <metric.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-bold text-dark-gray">
                     {metric.title}
                   </p>
                   <p className="text-xs text-gray-600">
@@ -128,7 +132,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-gray-900">
+                <p className="text-xl font-bold text-dark-gray">
                   {metric.value}
                 </p>
               </div>
@@ -138,18 +142,18 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       </div>
 
       {/* Additional Metrics */}
-      <div className="card">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Métricas Adicionais</h4>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-gray-600">VaR 99%</p>
-            <p className="text-sm font-semibold text-gray-900">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
+        <h4 className="text-lg font-bold text-dark-gray mb-4">Métricas Adicionais</h4>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+            <p className="text-sm text-gray-600 mb-1">VaR 99%</p>
+            <p className="text-lg font-bold text-dark-gray">
               {formatCurrency(var_99)}
             </p>
           </div>
-          <div>
-            <p className="text-xs text-gray-600">Max Drawdown</p>
-            <p className="text-sm font-semibold text-gray-900">
+          <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+            <p className="text-sm text-gray-600 mb-1">Max Drawdown</p>
+            <p className="text-lg font-bold text-dark-gray">
               {formatPercentage(max_drawdown)}
             </p>
           </div>
@@ -158,16 +162,16 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
 
       {/* Recommendations */}
       {recommendations && recommendations.length > 0 && (
-        <div className="card">
-          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-            <AlertTriangle className="h-4 w-4 mr-2" />
+        <div className="bg-gradient-to-br from-reflector/10 to-reflector/5 rounded-2xl shadow-lg border border-reflector/20 p-6 hover:shadow-glow-reflector transition-all duration-300">
+          <h4 className="text-lg font-bold text-dark-gray mb-4 flex items-center">
+            <AlertTriangle className="h-5 w-5 mr-3 text-reflector" />
             Recomendações de IA
           </h4>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {recommendations.map((recommendation, index) => (
-              <div key={index} className="flex items-start space-x-2">
-                <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2 flex-shrink-0" />
-                <p className="text-sm text-gray-700">{recommendation}</p>
+              <div key={index} className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-reflector rounded-full mt-2 flex-shrink-0" />
+                <p className="text-sm text-gray-700 leading-relaxed">{recommendation}</p>
               </div>
             ))}
           </div>
