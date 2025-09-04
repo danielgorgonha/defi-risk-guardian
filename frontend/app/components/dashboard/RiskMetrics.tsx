@@ -27,10 +27,10 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
   } = riskAnalysis
 
   const getRiskColor = (score: number) => {
-    if (score < 30) return 'text-risk-green bg-risk-green/10 border-risk-green/20'
-    if (score < 60) return 'text-risk-yellow bg-risk-yellow/10 border-risk-yellow/20'
-    if (score < 80) return 'text-risk-red bg-risk-red/10 border-risk-red/20'
-    return 'text-risk-red bg-risk-red/20 border-risk-red/30'
+    if (score < 30) return 'text-risk-green-700 bg-risk-green/10 border-risk-green/20'
+    if (score < 60) return 'text-risk-yellow-700 bg-risk-yellow/10 border-risk-yellow/20'
+    if (score < 80) return 'text-risk-red-700 bg-risk-red/10 border-risk-red/20'
+    return 'text-risk-red-700 bg-risk-red/20 border-risk-red/30'
   }
 
   const getRiskLabel = (score: number) => {
@@ -80,7 +80,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       {/* Risk Score Card */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-dark-gray flex items-center">
+          <h3 className="text-xl font-bold text-black flex items-center">
             <Shield className="h-6 w-6 mr-3 text-stellar" />
             Score de Risco
           </h3>
@@ -90,10 +90,10 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
         </div>
         
         <div className="text-center">
-          <div className="text-5xl font-bold text-dark-gray mb-3">
+          <div className="text-5xl font-bold text-black mb-3">
             {risk_score.toFixed(1)}%
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-800 font-medium">
             Baseado em análise de IA e métricas financeiras
           </p>
         </div>
@@ -123,16 +123,16 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
                   <metric.icon className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-dark-gray">
+                  <p className="text-sm font-bold text-black">
                     {metric.title}
                   </p>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-700 font-medium">
                     {metric.description}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-dark-gray">
+                <p className="text-xl font-bold text-black">
                   {metric.value}
                 </p>
               </div>
@@ -143,17 +143,17 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
 
       {/* Additional Metrics */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
-        <h4 className="text-lg font-bold text-dark-gray mb-4">Métricas Adicionais</h4>
+        <h4 className="text-lg font-bold text-black mb-4">Métricas Adicionais</h4>
         <div className="grid grid-cols-2 gap-6">
           <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
-            <p className="text-sm text-gray-600 mb-1">VaR 99%</p>
-            <p className="text-lg font-bold text-dark-gray">
+            <p className="text-sm text-gray-700 font-medium mb-1">VaR 99%</p>
+            <p className="text-lg font-bold text-black">
               {formatCurrency(var_99)}
             </p>
           </div>
           <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
-            <p className="text-sm text-gray-600 mb-1">Max Drawdown</p>
-            <p className="text-lg font-bold text-dark-gray">
+            <p className="text-sm text-gray-700 font-medium mb-1">Max Drawdown</p>
+            <p className="text-lg font-bold text-black">
               {formatPercentage(max_drawdown)}
             </p>
           </div>
@@ -163,7 +163,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       {/* Recommendations */}
       {recommendations && recommendations.length > 0 && (
         <div className="bg-gradient-to-br from-reflector/10 to-reflector/5 rounded-2xl shadow-lg border border-reflector/20 p-6 hover:shadow-glow-reflector transition-all duration-300">
-          <h4 className="text-lg font-bold text-dark-gray mb-4 flex items-center">
+          <h4 className="text-lg font-bold text-black mb-4 flex items-center">
             <AlertTriangle className="h-5 w-5 mr-3 text-reflector" />
             Recomendações de IA
           </h4>
@@ -171,7 +171,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
             {recommendations.map((recommendation, index) => (
               <div key={index} className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-reflector rounded-full mt-2 flex-shrink-0" />
-                <p className="text-sm text-gray-700 leading-relaxed">{recommendation}</p>
+                <p className="text-sm text-gray-800 leading-relaxed font-medium">{recommendation}</p>
               </div>
             ))}
           </div>

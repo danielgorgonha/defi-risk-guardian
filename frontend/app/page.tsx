@@ -193,7 +193,7 @@ export default function Home() {
                     value={walletAddress}
                     onChange={(e) => setWalletAddress(e.target.value)}
                     placeholder="Enter your Stellar address..."
-                    className="flex-1 px-6 py-4 border-2 border-gray-400 rounded-xl focus:ring-2 focus:ring-reflector focus:border-reflector transition-all duration-300 text-lg bg-white shadow-sm"
+                    className="flex-1 px-6 py-4 border-2 border-gray-400 rounded-xl focus:ring-2 focus:ring-reflector focus:border-reflector transition-all duration-300 text-lg bg-white shadow-sm placeholder:text-gray-600 placeholder:font-medium"
                   />
                   <button
                     type="submit"
@@ -276,6 +276,69 @@ export default function Home() {
                 </button>
             </div>
           </div>
+
+          {/* Footer */}
+          <footer className="mt-20 py-12 bg-gray-50 border-t border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div className="md:col-span-2">
+                  <div className="flex items-center space-x-3 mb-4">
+                    <div className="p-2 bg-gradient-to-br from-blue-900 to-cyan-500 rounded-lg">
+                      <Shield className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">Risk Guardian</h3>
+                  </div>
+                  <p className="text-gray-600 mb-4 max-w-md">
+                    AI-powered DeFi risk management system using Reflector Oracle and Stellar infrastructure to protect your investments.
+                  </p>
+                  <div className="flex space-x-4">
+                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-600">T</span>
+                    </div>
+                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-600">D</span>
+                    </div>
+                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-600">G</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Product</h4>
+                  <ul className="space-y-2">
+                    <li><a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Features</a></li>
+                    <li><a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Pricing</a></li>
+                    <li><a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">API</a></li>
+                    <li><a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Documentation</a></li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">Support</h4>
+                  <ul className="space-y-2">
+                    <li><a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Help Center</a></li>
+                    <li><a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Contact Us</a></li>
+                    <li><a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Status</a></li>
+                    <li><a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">Community</a></li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="mt-8 pt-8 border-t border-gray-200">
+                <div className="flex flex-col md:flex-row justify-between items-center">
+                  <p className="text-gray-500 text-sm">
+                    © 2024 Risk Guardian. All rights reserved.
+                  </p>
+                  <div className="flex space-x-6 mt-4 md:mt-0">
+                    <a href="#" className="text-gray-500 hover:text-gray-900 text-sm transition-colors">Privacy Policy</a>
+                    <a href="#" className="text-gray-500 hover:text-gray-900 text-sm transition-colors">Terms of Service</a>
+                    <a href="#" className="text-gray-500 hover:text-gray-900 text-sm transition-colors">Cookie Policy</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </footer>
         </div>
       ) : (
         // Dashboard
@@ -292,12 +355,12 @@ export default function Home() {
                     setWalletAddress('')
                     setIsDemoMode(false)
                   }}
-                  className="px-4 py-2 text-sm bg-white text-reflector rounded-lg hover:bg-reflector/10 transition-all duration-300 font-medium"
+                  className="px-4 py-2 text-sm bg-white text-reflector border border-reflector/30 rounded-lg hover:bg-reflector/10 transition-all duration-300 font-medium"
                 >
                   Reset
                 </button>
               </div>
-              <p className="text-gray-700 text-sm mt-2">
+              <p className="text-gray-800 text-sm mt-2 font-medium">
                 You are viewing demo data. Connect a real wallet to use the complete system.
               </p>
             </div>
