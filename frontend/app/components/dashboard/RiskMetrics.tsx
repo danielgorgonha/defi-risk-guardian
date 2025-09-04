@@ -27,10 +27,10 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
   } = riskAnalysis
 
   const getRiskColor = (score: number) => {
-    if (score < 30) return 'text-risk-green-700 bg-risk-green/10 border-risk-green/20'
-    if (score < 60) return 'text-risk-yellow-700 bg-risk-yellow/10 border-risk-yellow/20'
-    if (score < 80) return 'text-risk-red-700 bg-risk-red/10 border-risk-red/20'
-    return 'text-risk-red-700 bg-risk-red/20 border-risk-red/30'
+    if (score < 30) return 'text-green-700 bg-green/10 border-green/20'
+    if (score < 60) return 'text-yellow-700 bg-yellow/10 border-yellow/20'
+    if (score < 80) return 'text-red-700 bg-red/10 border-red/20'
+    return 'text-red-700 bg-red/20 border-red/30'
   }
 
   const getRiskLabel = (score: number) => {
@@ -46,7 +46,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       value: formatCurrency(var_95),
       description: 'Perda máxima esperada em 95% dos cenários',
       icon: TrendingDown,
-      color: 'text-risk-red bg-risk-red/10',
+      color: 'text-red-700 bg-red-100',
       hoverGlow: 'hover:shadow-glow-red'
     },
     {
@@ -54,7 +54,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       value: formatPercentage(volatility),
       description: 'Volatilidade anual do portfólio',
       icon: Activity,
-      color: 'text-risk-yellow bg-risk-yellow/10',
+      color: 'text-yellow-700 bg-yellow-100',
       hoverGlow: 'hover:shadow-glow-yellow'
     },
     {
@@ -62,7 +62,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       value: sharpe_ratio.toFixed(2),
       description: 'Retorno ajustado ao risco',
       icon: BarChart3,
-      color: sharpe_ratio > 1 ? 'text-risk-green bg-risk-green/10' : 'text-risk-red bg-risk-red/10',
+      color: sharpe_ratio > 1 ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100',
       hoverGlow: sharpe_ratio > 1 ? 'hover:shadow-glow-green' : 'hover:shadow-glow-red'
     },
     {
@@ -70,7 +70,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       value: beta.toFixed(2),
       description: 'Correlação com o mercado (XLM)',
       icon: Target,
-      color: beta > 1 ? 'text-risk-yellow bg-risk-yellow/10' : 'text-stellar bg-stellar/10',
+      color: beta > 1 ? 'text-yellow-700 bg-yellow-100' : 'text-blue-700 bg-blue-100',
       hoverGlow: beta > 1 ? 'hover:shadow-glow-yellow' : 'hover:shadow-glow-stellar'
     }
   ]

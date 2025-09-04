@@ -154,7 +154,7 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
               {activeAlertsCount} alertas ativos precisam de atenção
             </p>
             <div className="flex space-x-2">
-              <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button className="px-3 py-3 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 Resolver Todos
               </button>
               <button className="px-3 py-1 text-sm bg-gray-100 text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-200 hover:border-gray-400 font-medium">

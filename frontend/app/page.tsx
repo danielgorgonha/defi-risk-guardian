@@ -347,15 +347,15 @@ export default function Home() {
             <div className="mb-6 p-4 bg-gradient-to-r from-reflector/10 to-reflector/5 border border-reflector/20 rounded-xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Star className="h-5 w-5 text-reflector" />
-                  <span className="text-reflector font-bold">Demo Mode Active</span>
+                  <Star className="h-5 w-5 text-cyan-700" />
+                  <span className="text-cyan-700 font-bold">Demo Mode Active</span>
                 </div>
                 <button
                   onClick={() => {
                     setWalletAddress('')
                     setIsDemoMode(false)
                   }}
-                  className="px-4 py-2 text-sm bg-white text-reflector border border-reflector/30 rounded-lg hover:bg-reflector/10 transition-all duration-300 font-medium"
+                  className="px-4 py-2 text-sm bg-white text-cyan-700 border border-cyan-300 rounded-lg hover:bg-cyan-50 transition-all duration-300 font-medium"
                 >
                   Reset
                 </button>
