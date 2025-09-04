@@ -1,12 +1,12 @@
-# Architecture: DeFi Risk Guardian
+# Architecture: Risk Guardian
 
 ## 🏗️ System Overview
 
-DeFi Risk Guardian is built with a modern, scalable, microservices-oriented architecture designed to process real-time data and provide intelligent risk analysis.
+Risk Guardian is built with a modern, scalable, microservices-oriented architecture designed to process real-time data and provide intelligent risk analysis.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        DeFi Risk Guardian                       │
+│                        Risk Guardian                            │
 ├─────────────────────────────────────────────────────────────────┤
 │  Frontend (Next.js)  │  Backend (FastAPI)  │  AI/ML Engine     │
 │  ┌─────────────────┐ │ ┌─────────────────┐ │ ┌───────────────┐  │
@@ -42,11 +42,12 @@ frontend/
 ```
 
 **Technologies:**
-- Next.js 14 with TypeScript
-- Tailwind CSS for styling
+- Next.js 15.5.2 with App Router and TypeScript
+- Tailwind CSS v4 for styling
 - Recharts for data visualization
 - React Query for state management
 - Axios for HTTP requests
+- pnpm for package management
 
 ### 2. Backend Layer (FastAPI + Python)
 
@@ -68,6 +69,7 @@ backend/
 - Celery for background tasks
 - Redis for caching
 - Pydantic for data validation
+- Stellar SDK 13.0.0 for blockchain integration
 
 ### 3. AI/ML Engine
 
@@ -220,4 +222,4 @@ Real-time Updates → WebSocket → Frontend State → UI Update
 
 ---
 
-This architecture is designed to be scalable, maintainable, and performant, allowing DeFi Risk Guardian to grow from a hackathon MVP to a complete enterprise solution.
+This architecture is designed to be scalable, maintainable, and performant, allowing Risk Guardian to grow from a hackathon MVP to a complete enterprise solution.

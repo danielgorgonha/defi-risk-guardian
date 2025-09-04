@@ -1,6 +1,6 @@
-# DeFi Risk Guardian 🔐
+# Risk Guardian 🔐
 
-**DeFi Risk Guardian** is an intelligent system for **automated DeFi risk management**, developed for **Stellar Hacks: KALE x Reflector 2025**.
+**Risk Guardian** is an intelligent system for **automated DeFi risk management**, developed for **Stellar Hacks: KALE x Reflector 2025**.
 
 ## 🚀 Overview
 
@@ -47,8 +47,8 @@ uvicorn app.main:app --reload
 
 # Frontend
 cd frontend
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 ## 📊 Key Features
@@ -89,3 +89,22 @@ MIT License - See [LICENSE](LICENSE) for details.
 ---
 
 **Built with ❤️ for Stellar Hacks: KALE x Reflector 2025**
+
+## 🎯 Current Status
+
+### ✅ Completed
+- **Frontend**: Next.js 15.5.2 with App Router, Tailwind CSS v4, pnpm
+- **Backend**: FastAPI with Stellar SDK 13.0.0, PostgreSQL, Redis
+- **Components**: Dashboard, Portfolio, Risk Metrics, Alerts
+- **Architecture**: Docker Compose setup, API integration
+- **Branding**: Updated to "Risk Guardian"
+
+### 🚧 In Progress
+- Backend API endpoints implementation
+- Real-time WebSocket connections
+- AI/ML models integration
+
+### 📋 Next Steps
+- Connect frontend with backend APIs
+- Implement real-time data updates
+- Add advanced risk analysis features

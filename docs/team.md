@@ -1,4 +1,4 @@
-# Team: DeFi Risk Guardian
+# Team: Risk Guardian
 
 ## 👥 Team Members
 
@@ -195,4 +195,4 @@
 
 ---
 
-**Together, we will build the best DeFi Risk Manager in the hackathon! 🚀**
+**Together, we will build the best Risk Guardian in the hackathon! 🚀**

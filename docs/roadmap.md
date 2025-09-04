@@ -1,4 +1,4 @@
-# Technical Roadmap: DeFi Risk Guardian
+# Technical Roadmap: Risk Guardian
 
 ## 📋 Pre-Hackathon
 
@@ -267,7 +267,7 @@ sqlalchemy==2.0.23
 alembic==1.12.1
 
 # Stellar Integration
-stellar-sdk==8.8.0
+stellar-sdk==13.0.0
 
 # ML/Data Science
 scikit-learn==1.3.0
@@ -286,12 +286,12 @@ httpx==0.25.2
 ### Frontend
 ```json
 {
-  "react": "^18.2.0",
-  "typescript": "^4.9.5",
-  "tailwindcss": "^3.3.0",
+  "next": "15.5.2",
+  "react": "19.1.0",
+  "typescript": "^5",
+  "tailwindcss": "^4",
   "axios": "^1.6.0",
   "recharts": "^2.8.0",
-  "react-router-dom": "^6.17.0",
   "lucide-react": "^0.292.0"
 }
 ```
