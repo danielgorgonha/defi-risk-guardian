@@ -101,10 +101,10 @@ export function formatDuration(seconds: number): string {
 }
 
 export function formatRiskScore(score: number): string {
-  if (score < 30) return 'Baixo'
-  if (score < 60) return 'Médio'
-  if (score < 80) return 'Alto'
-  return 'Crítico'
+  if (score < 30) return 'Low'
+  if (score < 60) return 'Medium'
+  if (score < 80) return 'High'
+  return 'Critical'
 }
 
 export function getRiskColor(score: number): string {
@@ -139,10 +139,10 @@ export function formatOrderType(type: 'buy' | 'sell'): string {
 
 export function formatSeverity(severity: string): string {
   const severityMap: Record<string, string> = {
-    'low': 'Baixa',
-    'medium': 'Média',
-    'high': 'Alta',
-    'critical': 'Crítica',
+    'low': 'Low',
+    'medium': 'Medium',
+    'high': 'High',
+    'critical': 'Critical',
   }
   
   return severityMap[severity.toLowerCase()] || severity

@@ -31,10 +31,10 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
   }
 
   const getRiskLabel = (score: number) => {
-    if (score < 30) return 'Baixo'
-    if (score < 60) return 'Médio'
-    if (score < 80) return 'Alto'
-    return 'Crítico'
+    if (score < 30) return 'Low'
+    if (score < 60) return 'Medium'
+    if (score < 80) return 'High'
+    return 'Critical'
   }
 
   const displayedAssets = showAllAssets ? assets : assets.slice(0, 3)
@@ -64,7 +64,7 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
         <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-4 lg:p-6 rounded-2xl border border-blue-200 hover:shadow-lg transition-all duration-300">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs lg:text-sm font-bold text-blue-700">Valor Total</p>
+              <p className="text-xs lg:text-sm font-bold text-blue-700">Total Value</p>
               <p className="text-xl lg:text-2xl font-bold text-black break-words">
                 {formatCurrency(totalValue)}
               </p>
@@ -89,7 +89,7 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
         <div className="bg-gradient-to-br from-orange-100 to-orange-50 p-4 lg:p-6 rounded-2xl border border-orange-200 hover:shadow-lg transition-all duration-300 sm:col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs lg:text-sm font-medium text-orange-600">Score de Risco</p>
+              <p className="text-xs lg:text-sm font-medium text-orange-600">Risk Score</p>
               <p className="text-2xl lg:text-3xl font-bold text-black">
                 {riskScore.toFixed(1)}%
               </p>
@@ -106,14 +106,14 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-black flex items-center">
             <PieChart className="h-6 w-6 mr-3 text-blue-600" />
-            Ativos ({assets.length})
+            Assets ({assets.length})
           </h3>
           {assets.length > 3 && (
             <button
               onClick={() => setShowAllAssets(!showAllAssets)}
               className="text-sm text-blue-600 hover:text-blue-700 font-medium px-4 py-2 rounded-lg hover:bg-blue-50 transition-all duration-300"
             >
-              {showAllAssets ? 'Ver menos' : 'Ver todos'}
+              {showAllAssets ? 'Show less' : 'Show all'}
             </button>
           )}
         </div>
@@ -129,15 +129,15 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
       <div className="mt-8 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
         <h4 className="text-lg font-semibold text-black mb-4 flex items-center">
           <PieChart className="h-5 w-5 mr-2 text-blue-600" />
-          Distribuição de Ativos
+          Asset Distribution
         </h4>
         <div className="flex items-center justify-center h-40 text-gray-800">
           <div className="text-center">
             <div className="p-4 bg-white rounded-full shadow-lg mb-4">
               <PieChart className="h-12 w-12 text-blue-600" />
             </div>
-            <p className="text-lg font-medium text-black">Gráfico de distribuição</p>
-            <p className="text-sm text-gray-700 font-medium">(Será implementado com Recharts)</p>
+            <p className="text-lg font-medium text-black">Distribution Chart</p>
+            <p className="text-sm text-gray-700 font-medium">(Will be implemented with Recharts)</p>
           </div>
         </div>
       </div>

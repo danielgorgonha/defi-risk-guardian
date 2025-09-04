@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { Alert } from '../../utils/api'
 import { formatDistanceToNow } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
+import { enUS } from 'date-fns/locale'
 
 interface AlertTimelineProps {
   alerts: Alert[]
@@ -91,9 +91,9 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
             <Bell className="h-5 w-5 text-orange-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Alertas</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Alerts</h3>
             <p className="text-sm text-gray-600">
-              {activeAlertsCount} ativos • {criticalAlertsCount} críticos
+              {activeAlertsCount} active • {criticalAlertsCount} critical
             </p>
           </div>
         </div>
@@ -105,9 +105,9 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
             onChange={(e) => setFilter(e.target.value as any)}
             className="text-sm border-2 border-gray-400 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium"
           >
-            <option value="all">Todos</option>
-            <option value="active">Ativos</option>
-            <option value="resolved">Resolvidos</option>
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="resolved">Resolved</option>
           </select>
 
           <select
@@ -115,11 +115,11 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
             onChange={(e) => setSeverityFilter(e.target.value as any)}
             className="text-sm border-2 border-gray-400 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black font-medium"
           >
-            <option value="all">Todas severidades</option>
-            <option value="low">Baixa</option>
-            <option value="medium">Média</option>
-            <option value="high">Alta</option>
-            <option value="critical">Crítica</option>
+            <option value="all">All severities</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="critical">Critical</option>
           </select>
         </div>
       </div>
@@ -129,12 +129,12 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
         <div className="text-center py-8">
           <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
           <h4 className="text-lg font-medium text-gray-900 mb-2">
-            Nenhum alerta encontrado
+            No alerts found
           </h4>
           <p className="text-gray-600">
             {filter === 'active' 
-              ? 'Não há alertas ativos no momento'
-              : 'Não há alertas com os filtros selecionados'
+              ? 'No active alerts at the moment'
+              : 'No alerts match the selected filters'
             }
           </p>
         </div>
@@ -151,14 +151,14 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
         <div className="mt-6 pt-6 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-700 font-medium">
-              {activeAlertsCount} alertas ativos precisam de atenção
+              {activeAlertsCount} active alerts need attention
             </p>
             <div className="flex space-x-2">
               <button className="px-3 py-3 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Resolver Todos
+                Resolve All
               </button>
               <button className="px-3 py-1 text-sm bg-gray-100 text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-200 hover:border-gray-400 font-medium">
-                Configurar
+                Configure
               </button>
             </div>
           </div>
@@ -250,7 +250,7 @@ function AlertItem({ alert }: AlertItemProps) {
                 <span>
                   {formatDistanceToNow(new Date(alert.triggered_at), { 
                     addSuffix: true, 
-                    locale: ptBR 
+                    locale: enUS 
                   })}
                 </span>
               </div>
@@ -258,12 +258,12 @@ function AlertItem({ alert }: AlertItemProps) {
               {alert.is_active ? (
                 <div className="flex items-center space-x-1 text-orange-600">
                   <AlertTriangle className="h-3 w-3" />
-                  <span>Ativo</span>
+                  <span>Active</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-1 text-green-600">
                   <CheckCircle className="h-3 w-3" />
-                  <span>Resolvido</span>
+                  <span>Resolved</span>
                 </div>
               )}
             </div>

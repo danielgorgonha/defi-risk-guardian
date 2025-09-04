@@ -34,25 +34,25 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
   }
 
   const getRiskLabel = (score: number) => {
-    if (score < 30) return 'Baixo'
-    if (score < 60) return 'Médio'
-    if (score < 80) return 'Alto'
-    return 'Crítico'
+    if (score < 30) return 'Low'
+    if (score < 60) return 'Medium'
+    if (score < 80) return 'High'
+    return 'Critical'
   }
 
   const metrics = [
     {
       title: 'Value at Risk (95%)',
       value: formatCurrency(var_95),
-      description: 'Perda máxima esperada em 95% dos cenários',
+      description: 'Maximum expected loss in 95% of scenarios',
       icon: TrendingDown,
       color: 'text-red-700 bg-red-100',
       hoverGlow: 'hover:shadow-glow-red'
     },
     {
-      title: 'Volatilidade',
+      title: 'Volatility',
       value: formatPercentage(volatility),
-      description: 'Volatilidade anual do portfólio',
+      description: 'Annual portfolio volatility',
       icon: Activity,
       color: 'text-yellow-700 bg-yellow-100',
       hoverGlow: 'hover:shadow-glow-yellow'
@@ -60,7 +60,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
     {
       title: 'Sharpe Ratio',
       value: sharpe_ratio.toFixed(2),
-      description: 'Retorno ajustado ao risco',
+      description: 'Risk-adjusted return',
       icon: BarChart3,
       color: sharpe_ratio > 1 ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100',
       hoverGlow: sharpe_ratio > 1 ? 'hover:shadow-glow-green' : 'hover:shadow-glow-red'
@@ -68,7 +68,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
     {
       title: 'Beta',
       value: beta.toFixed(2),
-      description: 'Correlação com o mercado (XLM)',
+      description: 'Market correlation (XLM)',
       icon: Target,
       color: beta > 1 ? 'text-yellow-700 bg-yellow-100' : 'text-blue-700 bg-blue-100',
       hoverGlow: beta > 1 ? 'hover:shadow-glow-yellow' : 'hover:shadow-glow-stellar'
@@ -82,7 +82,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-black flex items-center">
             <Shield className="h-6 w-6 mr-3 text-stellar" />
-            Score de Risco
+            Risk Score
           </h3>
           <div className={`px-4 py-2 rounded-xl text-sm font-medium border ${getRiskColor(risk_score)}`}>
             {getRiskLabel(risk_score)}
@@ -94,7 +94,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
             {risk_score.toFixed(1)}%
           </div>
           <p className="text-sm text-gray-800 font-medium">
-            Baseado em análise de IA e métricas financeiras
+            Based on AI analysis and financial metrics
           </p>
         </div>
 
@@ -143,7 +143,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
 
       {/* Additional Metrics */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
-        <h4 className="text-lg font-bold text-black mb-4">Métricas Adicionais</h4>
+        <h4 className="text-lg font-bold text-black mb-4">Additional Metrics</h4>
         <div className="grid grid-cols-2 gap-6">
           <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
             <p className="text-sm text-gray-700 font-medium mb-1">VaR 99%</p>
@@ -165,7 +165,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
         <div className="bg-gradient-to-br from-reflector/10 to-reflector/5 rounded-2xl shadow-lg border border-reflector/20 p-6 hover:shadow-glow-reflector transition-all duration-300">
           <h4 className="text-lg font-bold text-black mb-4 flex items-center">
             <AlertTriangle className="h-5 w-5 mr-3 text-reflector" />
-            Recomendações de IA
+            AI Recommendations
           </h4>
           <div className="space-y-3">
             {recommendations.map((recommendation, index) => (
