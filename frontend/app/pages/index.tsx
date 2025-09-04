@@ -236,7 +236,11 @@ export default function Home() {
               Conecte sua wallet Stellar e comece a usar o sistema de gestão de risco mais avançado
             </p>
             <button
-              onClick={() => document.querySelector('input')?.focus()}
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  document.querySelector('input')?.focus()
+                }
+              }}
               className="px-8 py-4 bg-white text-blue-600 rounded-lg hover:bg-gray-100 font-semibold"
             >
               Começar Agora
