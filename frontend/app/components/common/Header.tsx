@@ -39,7 +39,7 @@ export function Header() {
                 <h1 className="text-xl font-bold text-white">
                   Risk Guardian
                 </h1>
-                <p className="text-xs text-white/70">DeFi Protection</p>
+                <p className="text-xs text-white/70">Powered by Reflector Oracle & Stellar</p>
               </div>
             </Link>
           </div>

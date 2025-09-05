@@ -177,15 +177,15 @@ export default function Home() {
                 </div>
               </div>
               
-              <h1 className="text-4xl md:text-6xl font-extrabold text-black mb-6 animate-fade-in">
+              <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 animate-fade-in">
                 Risk Guardian
               </h1>
               
-              <div className="text-lg md:text-xl text-gray-800 mb-2 font-bold">
-                AI-powered DeFi Risk Management
+              <div className="text-lg md:text-xl text-gray-600 mb-2 font-bold">
+                Powered by Reflector Oracle & Stellar
               </div>
-              <div className="text-lg md:text-xl text-gray-800 mb-12 max-w-4xl mx-auto font-bold">
-                Using Reflector Oracle and Stellar Infrastructure
+              <div className="text-lg md:text-xl text-gray-600 mb-12 max-w-4xl mx-auto font-bold">
+                AI-powered DeFi Risk Management
               </div>
               
               <div className="max-w-2xl mx-auto mb-8">
@@ -203,7 +203,7 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-900 to-cyan-500 text-white rounded-xl hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 transition-all duration-300 font-semibold text-lg min-w-[140px]"
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-400 text-white rounded-xl hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 transition-all duration-300 font-semibold text-lg min-w-[140px]"
                   >
                     {isLoading ? (
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -217,6 +217,15 @@ export default function Home() {
                 </form>
               </div>
               
+              {/* Trust Badge */}
+              <div className="flex justify-center mb-8">
+                <div className="px-6 py-3 bg-gray-100 rounded-full border border-gray-200">
+                  <span className="text-gray-700 font-medium text-sm">
+                    🛡️ Data verified by Reflector Oracle
+                  </span>
+                </div>
+              </div>
+              
               <button
                 onClick={handleDemoMode}
                 className="px-8 py-4 bg-gray-700 text-white rounded-xl hover:bg-gray-800 hover:shadow-xl flex items-center gap-3 mx-auto transition-all duration-300 font-semibold text-lg"
@@ -224,6 +233,64 @@ export default function Home() {
                 <span className="text-lg">⭐</span>
                 Demo Mode
               </button>
+            </div>
+          </div>
+
+          {/* Why Reflector Section */}
+          <div className="py-20">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-extrabold text-gray-900 mb-6">
+                Why Reflector Matters for DeFi Risk Management
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                Reliable data is the foundation of trust. Risk Guardian leverages Reflector Oracle to deliver accurate, decentralized and tamper-proof price feeds, ensuring smarter and safer DeFi decisions.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              {/* Trusted Data Feeds Card */}
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-4xl mb-4">🔗</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Trusted Data Feeds
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Reflector provides real-time, decentralized price oracles for fiat, crypto and Stellar assets.
+                </p>
+              </div>
+
+              {/* Tamper-Proof & Reliable Card */}
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-4xl mb-4">🛡️</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Tamper-Proof & Reliable
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Data integrity is guaranteed by Stellar infrastructure, making manipulation nearly impossible.
+                </p>
+              </div>
+
+              {/* AI + Reflector Card */}
+              <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                <div className="text-4xl mb-4">🤖</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  AI + Reflector
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Risk Guardian's AI combines Reflector feeds with predictive models to detect anomalies and rebalance portfolios.
+                </p>
+              </div>
+            </div>
+
+            {/* Final Badge */}
+            <div className="text-center">
+              <div className="flex justify-center">
+                <div className="px-6 py-3 bg-gray-100 rounded-full border border-gray-200">
+                  <span className="text-gray-700 font-medium text-sm">
+                    🛡️ Powered by Reflector Oracle
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
