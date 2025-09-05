@@ -65,7 +65,7 @@ class PortfolioService:
             
             for asset_data in discovered_assets:
                 if asset_data['balance'] > 0:  # Only add assets with balance > 0
-                    # Check if asset already exists
+                    # Check if asset already exists (regardless of status)
                     existing_asset = self.db.query(Portfolio).filter(
                         Portfolio.user_id == new_user.id,
                         Portfolio.asset_code == asset_data['asset_code'],
@@ -83,6 +83,13 @@ class PortfolioService:
                         )
                         self.db.add(new_asset)
                         assets_added += 1
+                    else:
+                        # Update existing asset if it was hidden and now has balance
+                        if existing_asset.status == 'hidden' and asset_data['balance'] > 0:
+                            existing_asset.balance = asset_data['balance']
+                            existing_asset.status = 'owned'
+                            existing_asset.updated_at = datetime.utcnow()
+                            assets_added += 1
             
             self.db.commit()
             
