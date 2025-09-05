@@ -103,6 +103,19 @@ class StellarOracleClient:
                 logger.warning(f"DEX trades fallback failed: {str(e)}")
             
             logger.warning(f"No price data found for {asset_id} from any source")
+            
+            # Fallback to mock prices for testnet when no real data is available
+            if self.network == "testnet":
+                mock_prices = {
+                    "XLM": 0.12,
+                    "USDC": 1.0,
+                    "BTC": 45000.0,
+                    "ETH": 3000.0
+                }
+                if asset_code in mock_prices:
+                    logger.info(f"Using mock price for {asset_code} in testnet: ${mock_prices[asset_code]}")
+                    return mock_prices[asset_code]
+            
             return None
                 
         except Exception as e:
