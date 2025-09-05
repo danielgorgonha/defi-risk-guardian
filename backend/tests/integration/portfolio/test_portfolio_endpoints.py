@@ -455,3 +455,148 @@ class TestPortfolioCRUD:
         
         assert "error" in data
         assert "Invalid wallet address" in data["error"]
+
+    # New endpoints tests for Stellar Oracle integration
+    def test_get_asset_price_history_success(self, client, sample_user_data, mock_stellar_oracle_client):
+        """Test successful retrieval of asset price history"""
+        # Mock price history data
+        mock_history = [
+            {
+                "timestamp": "2024-01-01T00:00:00Z",
+                "price_usd": 0.12
+            },
+            {
+                "timestamp": "2024-01-02T00:00:00Z", 
+                "price_usd": 0.13
+            }
+        ]
+        
+        mock_stellar_oracle_client.get_price_history = AsyncMock(return_value=mock_history)
+        
+        response = client.get(
+            f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/XLM/history?days=7"
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["asset_code"] == "XLM"
+        assert data["asset_issuer"] is None
+        assert data["period_days"] == 7
+        assert len(data["price_history"]) == 2
+        assert data["price_history"][0]["price_usd"] == 0.12
+    
+    def test_get_asset_price_history_with_issuer(self, client, sample_user_data, mock_stellar_oracle_client):
+        """Test price history retrieval with asset issuer"""
+        mock_history = [
+            {
+                "timestamp": "2024-01-01T00:00:00Z",
+                "price_usd": 1.0
+            }
+        ]
+        
+        mock_stellar_oracle_client.get_price_history = AsyncMock(return_value=mock_history)
+        
+        response = client.get(
+            f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/USDC/history",
+            params={"asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"}
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["asset_code"] == "USDC"
+        assert data["asset_issuer"] == "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    
+    def test_get_asset_price_history_no_data(self, client, sample_user_data, mock_stellar_oracle_client):
+        """Test price history when no data is available"""
+        mock_stellar_oracle_client.get_price_history = AsyncMock(return_value=[])
+        
+        response = client.get(
+            f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/UNKNOWN/history"
+        )
+        
+        assert response.status_code == 404
+        error_data = response.json()
+        assert "Price history not available" in error_data.get("detail", error_data.get("error", ""))
+    
+    def test_get_asset_price_history_invalid_wallet(self, client):
+        """Test price history with invalid wallet address"""
+        invalid_wallet = "INVALID_WALLET"
+        
+        response = client.get(
+            f"/api/v1/portfolio/{invalid_wallet}/assets/XLM/history"
+        )
+        
+        assert response.status_code == 400
+        error_data = response.json()
+        assert "Invalid wallet address format" in error_data.get("detail", error_data.get("error", ""))
+    
+    def test_get_asset_price_history_oracle_error(self, client, sample_user_data, mock_stellar_oracle_client):
+        """Test price history when oracle throws an error"""
+        mock_stellar_oracle_client.get_price_history = AsyncMock(side_effect=Exception("Oracle error"))
+        
+        response = client.get(
+            f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/XLM/history"
+        )
+        
+        assert response.status_code == 500
+        error_data = response.json()
+        assert "Error getting price history" in error_data.get("detail", error_data.get("error", ""))
+    
+    def test_get_supported_assets_success(self, client, mock_stellar_oracle_client):
+        """Test successful retrieval of supported assets"""
+        mock_assets = [
+            {
+                "code": "XLM",
+                "issuer": None,
+                "name": "Stellar Lumens"
+            },
+            {
+                "code": "USDC",
+                "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+                "name": "USD Coin"
+            },
+            {
+                "code": "KALE",
+                "issuer": "GABC1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890",
+                "name": "KALE Token"
+            }
+        ]
+        
+        mock_stellar_oracle_client.get_supported_assets = AsyncMock(return_value=mock_assets)
+        
+        response = client.get("/api/v1/portfolio/supported-assets")
+        
+        # Debug: print response if it fails
+        if response.status_code != 200:
+            print(f"Response status: {response.status_code}")
+            print(f"Response body: {response.text}")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total_count"] == 3
+        assert len(data["supported_assets"]) == 3
+        assert data["supported_assets"][0]["code"] == "XLM"
+        assert data["supported_assets"][1]["code"] == "USDC"
+        assert data["supported_assets"][2]["code"] == "KALE"
+    
+    def test_get_supported_assets_empty_list(self, client, mock_stellar_oracle_client):
+        """Test supported assets when no assets are available"""
+        mock_stellar_oracle_client.get_supported_assets = AsyncMock(return_value=[])
+        
+        response = client.get("/api/v1/portfolio/supported-assets")
+        
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total_count"] == 0
+        assert len(data["supported_assets"]) == 0
+    
+    def test_get_supported_assets_oracle_error(self, client, mock_stellar_oracle_client):
+        """Test supported assets when oracle throws an error"""
+        mock_stellar_oracle_client.get_supported_assets = AsyncMock(side_effect=Exception("Oracle error"))
+        
+        response = client.get("/api/v1/portfolio/supported-assets")
+        
+        assert response.status_code == 500
+        error_data = response.json()
+        error_message = error_data.get("detail", error_data.get("error", ""))
+        assert "Error getting supported assets" in error_message

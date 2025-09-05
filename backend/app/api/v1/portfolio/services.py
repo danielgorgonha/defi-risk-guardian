@@ -48,6 +48,21 @@ class PortfolioService:
             discovered_assets = await discover_wallet_assets(portfolio_data.wallet_address)
             assets_added = 0
             
+            # Get current prices for discovered assets
+            for asset_data in discovered_assets:
+                try:
+                    price_usd = await stellar_oracle_client.get_asset_price(
+                        asset_data['asset_code'], 
+                        asset_data['asset_issuer']
+                    )
+                    if price_usd:
+                        asset_data['price_usd'] = price_usd
+                    else:
+                        asset_data['price_usd'] = 0.0
+                except Exception as e:
+                    print(f"Warning: Could not get price for {asset_data['asset_code']}: {str(e)}")
+                    asset_data['price_usd'] = 0.0
+            
             for asset_data in discovered_assets:
                 if asset_data['balance'] > 0:  # Only add assets with balance > 0
                     # Check if asset already exists
@@ -351,18 +366,14 @@ class PortfolioService:
         except Exception:
             price_usd = 0.0
         
-        # Get price history (last 30 days)
-        price_history = self.db.query(PriceHistory).filter(
-            PriceHistory.asset_code == asset.asset_code,
-            PriceHistory.asset_issuer == asset.asset_issuer
-        ).order_by(PriceHistory.timestamp.desc()).limit(30).all()
-        
-        history_data = []
-        for record in price_history:
-            history_data.append({
-                "timestamp": record.timestamp.isoformat(),
-                "price_usd": record.price_usd
-            })
+        # Get price history from oracle (last 30 days)
+        try:
+            history_data = await stellar_oracle_client.get_price_history(
+                asset.asset_code, asset.asset_issuer, 30
+            )
+        except Exception as e:
+            print(f"Warning: Could not get price history for {asset.asset_code}: {str(e)}")
+            history_data = []
         
         asset_data = format_asset_data(asset, price_usd)
         asset_data["price_history"] = history_data

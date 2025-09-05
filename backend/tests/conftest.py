@@ -71,21 +71,48 @@ async def async_client(db_session):
 @pytest.fixture
 def mock_stellar_oracle_client():
     """Mock Stellar Oracle client for testing."""
-    with patch('app.api.v1.portfolio.endpoints.stellar_oracle_client') as mock_instance:
+    with patch('app.api.v1.portfolio.endpoints.stellar_oracle_client') as mock_endpoints, \
+         patch('app.api.v1.portfolio.services.stellar_oracle_client') as mock_services, \
+         patch('app.api.v1.risk.stellar_oracle_client') as mock_risk:
         # Configure mock methods
-        mock_instance.get_asset_price = AsyncMock(return_value=0.12)
-        mock_instance.get_supported_assets = AsyncMock(return_value=[
+        mock_endpoints.get_asset_price = AsyncMock(return_value=0.12)
+        mock_endpoints.get_supported_assets = AsyncMock(return_value=[
             {"code": "XLM", "issuer": None, "name": "Stellar Lumens"}
         ])
+        mock_endpoints.get_price_history = AsyncMock(return_value=[
+            {"timestamp": "2024-01-01T00:00:00Z", "price": 0.12},
+            {"timestamp": "2024-01-02T00:00:00Z", "price": 0.13}
+        ])
+        
+        mock_services.get_asset_price = AsyncMock(return_value=0.12)
+        mock_services.get_supported_assets = AsyncMock(return_value=[
+            {"code": "XLM", "issuer": None, "name": "Stellar Lumens"}
+        ])
+        mock_services.get_price_history = AsyncMock(return_value=[
+            {"timestamp": "2024-01-01T00:00:00Z", "price": 0.12},
+            {"timestamp": "2024-01-02T00:00:00Z", "price": 0.13}
+        ])
+        
+        mock_risk.get_asset_price = AsyncMock(return_value=0.12)
+        mock_risk.get_supported_assets = AsyncMock(return_value=[
+            {"code": "XLM", "issuer": None, "name": "Stellar Lumens"}
+        ])
+        mock_risk.get_price_history = AsyncMock(return_value=[
+            {"timestamp": "2024-01-01T00:00:00Z", "price": 0.12},
+            {"timestamp": "2024-01-02T00:00:00Z", "price": 0.13}
+        ])
+        
         # Mock properties for health check
-        mock_instance.network = "testnet"
-        mock_instance.horizon_url = "https://horizon-testnet.stellar.org"
-        mock_instance.contracts = {
-            "stellar_dex": "CAVLP2FY3AJX4Q3FKF2FBJCM2P2N3FWYY6WRT53NQOTBS7J5UQ4SD6HLP",
-            "external_cex": "CCYOZX2H4Z3HUBXHAP5GLOAYQ73TGLMZB7O6FY7JFB7FUMW3ET5KMJRN6",
-            "fiat": "CCSSMW2RJTT4T5CB77P4GM2O7IQP5URZ5ICUEN5Y53D2QDDNAGU5NV4WFI"
-        }
-        yield mock_instance
+        for mock_instance in [mock_endpoints, mock_services, mock_risk]:
+            mock_instance.network = "testnet"
+            mock_instance.horizon_url = "https://horizon-testnet.stellar.org"
+            mock_instance.contracts = {
+                "stellar_dex": "CAVLP2FY3AJX4Q3FKF2FBJCM2P2N3FWYY6WRT53NQOTBS7J5UQ4SD6HLP",
+                "external_cex": "CCYOZX2H4Z3HUBXHAP5GLOAYQ73TGLMZB7O6FY7JFB7FUMW3ET5KMJRN6",
+                "fiat": "CCSSMW2RJTT4T5CB77P4GM2O7IQP5URZ5ICUEN5Y53D2QDDNAGU5NV4WFI"
+            }
+        
+        yield mock_endpoints
 
 @pytest.fixture
 def mock_cache_service():

@@ -84,7 +84,7 @@ class TestRiskAnalysis:
         assert "error" in data
         assert "User not found" in data["error"]
     
-    def test_analyze_portfolio_risk_no_portfolio(self, client, sample_user_data):
+    def test_analyze_portfolio_risk_no_portfolio(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test risk analysis for user with no portfolio"""
         # Create user but don't add any assets manually
         # Note: The system will automatically discover assets from the Stellar wallet

@@ -27,6 +27,19 @@ async def create_user(portfolio_data: PortfolioCreate, db: Session = Depends(get
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.get("/supported-assets")
+async def get_supported_assets():
+    """Get list of supported assets from Stellar network"""
+    try:
+        assets = await stellar_oracle_client.get_supported_assets()
+        return {
+            "supported_assets": assets,
+            "total_count": len(assets)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error getting supported assets")
+
+
 @router.get("/{wallet_address}")
 async def get_portfolio(wallet_address: str, db: Session = Depends(get_db)):
     """Get portfolio data for a user"""
@@ -89,11 +102,12 @@ async def get_asset_price(
         if price is None:
             raise HTTPException(status_code=404, detail="Asset not found or price unavailable")
         
+        from datetime import datetime
         return {
             "asset_code": asset_code,
             "asset_issuer": asset_issuer,
             "price_usd": price,
-            "timestamp": "2024-01-01T00:00:00Z"
+            "timestamp": datetime.utcnow().isoformat() + "Z"
         }
         
     except HTTPException:
@@ -195,3 +209,37 @@ async def get_asset_details(
             raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+@router.get("/{wallet_address}/assets/{asset_code}/history")
+async def get_asset_price_history(
+    wallet_address: str,
+    asset_code: str,
+    asset_issuer: str = None,
+    days: int = 30,
+    db: Session = Depends(get_db)
+):
+    """Get price history for a specific asset"""
+    try:
+        # Validate wallet address
+        from .validators import validate_stellar_address
+        if not validate_stellar_address(wallet_address):
+            raise HTTPException(status_code=400, detail="Invalid wallet address format")
+        
+        # Get price history from oracle
+        history = await stellar_oracle_client.get_price_history(asset_code, asset_issuer, days)
+        
+        if not history:
+            raise HTTPException(status_code=404, detail="Price history not available for this asset")
+        
+        return {
+            "asset_code": asset_code,
+            "asset_issuer": asset_issuer,
+            "price_history": history,
+            "period_days": days
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error getting price history")

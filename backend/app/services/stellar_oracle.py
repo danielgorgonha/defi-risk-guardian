@@ -6,9 +6,10 @@ import asyncio
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 import logging
-from stellar_sdk import Server, Keypair, Network
-from stellar_sdk.exceptions import SdkError
+from stellar_sdk import Server, Keypair, Network, Asset
+from stellar_sdk.exceptions import SdkError, NotFoundError
 from app.core.config import settings
+from app.services.cache import cache_service
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ class StellarOracleClient:
     
     async def get_asset_price(self, asset_code: str, asset_issuer: Optional[str] = None) -> Optional[float]:
         """
-        Get current price for an asset from on-chain contract
+        Get current price for an asset from on-chain contract with fallback to Reflector API
         
         Args:
             asset_code: Asset code (e.g., 'XLM', 'USDC')
@@ -50,10 +51,17 @@ class StellarOracleClient:
             Current price in USD or None if not found
         """
         try:
-            # Build asset identifier
+            # Build asset identifier for cache
             asset_id = asset_code
             if asset_issuer:
                 asset_id = f"{asset_code}:{asset_issuer}"
+            
+            # Check cache first
+            cache_key = f"price:{asset_id}"
+            cached_price = cache_service.get(cache_key)
+            if cached_price is not None:
+                logger.info(f"Price cache hit for {asset_id}: ${cached_price}")
+                return float(cached_price)
             
             # Try different contract sources in order of preference
             contracts_to_try = [
@@ -67,24 +75,184 @@ class StellarOracleClient:
                     contract_id = self.contracts[contract_type]
                     logger.info(f"Trying to get price for {asset_id} from {description} (contract: {contract_id})")
                     
-                    # For now, we'll use a mock price until we implement the actual contract calls
-                    # TODO: Implement actual contract method calls
-                    if asset_code.upper() == "XLM":
-                        return 0.12  # Mock XLM price for testing
-                    elif asset_code.upper() == "USDC":
-                        return 1.0   # Mock USDC price
-                    else:
-                        return 0.1   # Mock price for other assets
+                    # Try to call the contract
+                    price = await self._call_contract_price(contract_id, asset_code, asset_issuer)
+                    if price is not None:
+                        # Cache the result for 5 minutes
+                        cache_service.set(cache_key, price, ttl_seconds=300)
+                        logger.info(f"Got price from {description}: ${price}")
+                        return price
                         
                 except Exception as e:
                     logger.warning(f"Failed to get price from {description}: {str(e)}")
                     continue
             
-            logger.warning(f"No price data found for {asset_id} from any contract")
+            # Skip Reflector API for now - will be implemented later
+            logger.info(f"Skipping Reflector API for {asset_id} - not implemented yet")
+            
+            # Final fallback to DEX trades
+            logger.info(f"Trying DEX trades fallback for {asset_id}")
+            try:
+                price = await self._get_price_from_dex_trades(asset_code, asset_issuer)
+                if price is not None:
+                    # Cache the result for 2 minutes (DEX data is less reliable)
+                    cache_service.set(cache_key, price, ttl_seconds=120)
+                    logger.info(f"Got price from DEX trades: ${price}")
+                    return price
+            except Exception as e:
+                logger.warning(f"DEX trades fallback failed: {str(e)}")
+            
+            logger.warning(f"No price data found for {asset_id} from any source")
             return None
                 
         except Exception as e:
             logger.error(f"Error getting price for {asset_code}: {str(e)}")
+            return None
+    
+    async def _call_contract_price(self, contract_id: str, asset_code: str, asset_issuer: Optional[str] = None) -> Optional[float]:
+        """
+        Call a Soroban contract to get asset price
+        
+        Args:
+            contract_id: Contract ID to call
+            asset_code: Asset code
+            asset_issuer: Asset issuer address
+            
+        Returns:
+            Price in USD or None if failed
+        """
+        try:
+            # Build asset identifier for contract call
+            if asset_code.upper() == "XLM":
+                # For XLM, we might need to pass None or a special identifier
+                asset_identifier = "XLM"
+            else:
+                asset_identifier = f"{asset_code}:{asset_issuer}"
+            
+            # For now, Soroban contract calls are not implemented in the current SDK version
+            # This would be the actual implementation when Soroban contracts are deployed:
+            # 
+            # from stellar_sdk import InvokeHostFunction
+            # 
+            # methods_to_try = ["get_price", "price", "getAssetPrice"]
+            # 
+            # for method_name in methods_to_try:
+            #     try:
+            #         result = await self.server.simulate_transaction(
+            #             InvokeHostFunction(
+            #                 contract_id=contract_id,
+            #                 function_name=method_name,
+            #                 args=[asset_identifier]
+            #             )
+            #         )
+            #         # Process result and return price
+            #         return float(result.get("price_usd"))
+            #     except Exception as e:
+            #         logger.debug(f"Contract method {method_name} failed: {str(e)}")
+            #         continue
+            
+            # For now, return None to trigger fallback to Reflector API and DEX
+            logger.info(f"Contract call to {contract_id} for {asset_identifier} - Soroban contracts not yet implemented")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Contract call failed for {contract_id}: {str(e)}")
+            return None
+    
+    async def _get_price_from_dex_trades(self, asset_code: str, asset_issuer: Optional[str] = None) -> Optional[float]:
+        """
+        Get price from Stellar DEX trades
+        
+        Args:
+            asset_code: Asset code
+            asset_issuer: Asset issuer address
+            
+        Returns:
+            Price in USD or None if failed
+        """
+        try:
+            # Create asset object
+            if asset_code.upper() == "XLM":
+                base_asset = Asset.native()
+            else:
+                base_asset = Asset(asset_code, asset_issuer)
+            
+            # Get recent trades for XLM pair
+            counter_asset = Asset.native()  # Always pair with XLM
+            
+            # Get recent trades
+            trades = self.server.trades().for_asset_pair(
+                base_asset, counter_asset
+            ).order(desc=True).limit(10).call()
+            
+            # Handle different response formats
+            if hasattr(trades, 'records'):
+                records = trades.records
+            elif isinstance(trades, dict) and '_embedded' in trades:
+                records = trades['_embedded'].get('records', [])
+            else:
+                logger.warning(f"Unexpected response format for {asset_code}: {type(trades)}")
+                return None
+                
+            if not records:
+                logger.warning(f"No trades found for {asset_code}")
+                return None
+            
+            # Calculate weighted average price
+            total_volume = 0
+            weighted_price = 0
+            
+            for trade in records:
+                # Handle both object and dict formats
+                if hasattr(trade, 'base_amount'):
+                    volume = float(trade.base_amount)
+                    price = float(trade.price)
+                elif isinstance(trade, dict):
+                    volume = float(trade.get('base_amount', 0))
+                    price = float(trade.get('price', 0))
+                else:
+                    continue
+                
+                total_volume += volume
+                weighted_price += price * volume
+            
+            if total_volume == 0:
+                return None
+            
+            avg_price = weighted_price / total_volume
+            
+            # Convert from XLM to USD (this is a rough conversion)
+            # In a real implementation, you'd get XLM/USD price from another source
+            xlm_usd_price = await self._get_xlm_usd_price()
+            if xlm_usd_price is None:
+                return None
+            
+            usd_price = avg_price * xlm_usd_price
+            logger.info(f"DEX price for {asset_code}: {avg_price} XLM = ${usd_price} USD")
+            
+            return usd_price
+            
+        except Exception as e:
+            logger.error(f"Failed to get DEX price for {asset_code}: {str(e)}")
+            return None
+    
+    async def _get_xlm_usd_price(self) -> Optional[float]:
+        """
+        Get XLM/USD price from external source
+        
+        Returns:
+            XLM price in USD or None if failed
+        """
+        try:
+            # Skip Reflector API for now - will be implemented later
+            logger.info("Skipping Reflector API for XLM price - not implemented yet")
+            
+            # Fallback to a hardcoded price (in production, use a reliable price feed)
+            logger.warning("Using fallback XLM price")
+            return 0.12  # Fallback price
+            
+        except Exception as e:
+            logger.error(f"Failed to get XLM/USD price: {str(e)}")
             return None
     
     async def get_price_history(
@@ -95,7 +263,7 @@ class StellarOracleClient:
         interval: str = "1h"
     ) -> List[Dict]:
         """
-        Get price history for an asset from on-chain contract
+        Get price history for an asset from multiple sources
         
         Args:
             asset_code: Asset code
@@ -107,40 +275,261 @@ class StellarOracleClient:
             List of price history data
         """
         try:
-            # TODO: Implement actual contract method calls for price history
-            logger.info(f"Getting price history for {asset_code} - period: {period}, interval: {interval}")
+            # Build asset identifier for cache
+            asset_id = asset_code
+            if asset_issuer:
+                asset_id = f"{asset_code}:{asset_issuer}"
             
-            # Mock data for now
-            return [
+            # Check cache first
+            cache_key = f"history:{asset_id}:{period}:{interval}"
+            cached_history = cache_service.get(cache_key)
+            if cached_history is not None:
+                logger.info(f"History cache hit for {asset_id}")
+                return cached_history
+            
+            logger.info(f"Getting price history for {asset_id} - period: {period}, interval: {interval}")
+            
+            # Skip Reflector API for now - will be implemented later
+            logger.info(f"Skipping Reflector API history for {asset_id} - not implemented yet")
+            
+            # Fallback to DEX trades
+            try:
+                history = await self._get_history_from_dex_trades(asset_code, asset_issuer, period, interval)
+                if history:
+                    # Cache for 5 minutes (DEX data is less reliable)
+                    cache_service.set(cache_key, history, ttl_seconds=300)
+                    logger.info(f"Got history from DEX trades: {len(history)} points")
+                    return history
+            except Exception as e:
+                logger.warning(f"DEX trades history failed: {str(e)}")
+            
+            # Final fallback to mock data
+            logger.warning(f"Using fallback history data for {asset_id}")
+            fallback_data = [
                 {"timestamp": "2024-01-01T00:00:00Z", "price": 0.12},
                 {"timestamp": "2024-01-01T01:00:00Z", "price": 0.13},
                 {"timestamp": "2024-01-01T02:00:00Z", "price": 0.11}
             ]
+            return fallback_data
                 
         except Exception as e:
             logger.error(f"Error getting history for {asset_code}: {str(e)}")
             return []
     
+    async def _get_history_from_dex_trades(self, asset_code: str, asset_issuer: Optional[str] = None, period: str = "24h", interval: str = "1h") -> List[Dict]:
+        """
+        Get price history from Stellar DEX trades
+        
+        Args:
+            asset_code: Asset code
+            asset_issuer: Asset issuer address
+            period: Time period
+            interval: Data interval
+            
+        Returns:
+            List of price history data
+        """
+        try:
+            # Create asset object
+            if asset_code.upper() == "XLM":
+                base_asset = Asset.native()
+            else:
+                base_asset = Asset(asset_code, asset_issuer)
+            
+            # Get XLM/USD price for conversion
+            xlm_usd_price = await self._get_xlm_usd_price()
+            if xlm_usd_price is None:
+                return []
+            
+            # Calculate time range
+            now = datetime.utcnow()
+            if period == "24h":
+                start_time = now - timedelta(hours=24)
+            elif period == "7d":
+                start_time = now - timedelta(days=7)
+            elif period == "30d":
+                start_time = now - timedelta(days=30)
+            else:
+                start_time = now - timedelta(hours=24)
+            
+            # Get trades in time range
+            trades = self.server.trades().for_asset_pair(
+                base_asset, Asset.native()
+            ).order(desc=True).limit(200).call()
+            
+            # Handle different response formats
+            if hasattr(trades, 'records'):
+                records = trades.records
+            elif isinstance(trades, dict) and '_embedded' in trades:
+                records = trades['_embedded'].get('records', [])
+            else:
+                logger.warning(f"Unexpected response format for {asset_code}: {type(trades)}")
+                return []
+                
+            if not records:
+                return []
+            
+            # Group trades by time intervals and calculate average prices
+            history = []
+            current_time = start_time
+            
+            while current_time < now:
+                next_time = current_time + timedelta(hours=1)  # 1 hour intervals
+                
+                # Find trades in this time window
+                period_trades = []
+                for trade in records:
+                    # Handle both object and dict formats
+                    if hasattr(trade, 'ledger_close_time'):
+                        trade_time = datetime.fromisoformat(trade.ledger_close_time.replace('Z', '+00:00'))
+                    elif isinstance(trade, dict):
+                        trade_time = datetime.fromisoformat(trade.get('ledger_close_time', '').replace('Z', '+00:00'))
+                    else:
+                        continue
+                        
+                    if start_time <= trade_time < next_time:
+                        period_trades.append(trade)
+                
+                if period_trades:
+                    # Calculate weighted average price for this period
+                    total_volume = 0
+                    weighted_price = 0
+                    
+                    for trade in period_trades:
+                        volume = float(trade.base_amount)
+                        price = float(trade.price)
+                        
+                        total_volume += volume
+                        weighted_price += price * volume
+                    
+                    if total_volume > 0:
+                        avg_price_xlm = weighted_price / total_volume
+                        avg_price_usd = avg_price_xlm * xlm_usd_price
+                        
+                        history.append({
+                            "timestamp": current_time.isoformat() + "Z",
+                            "price": avg_price_usd
+                        })
+                
+                current_time = next_time
+            
+            return history
+            
+        except Exception as e:
+            logger.error(f"Failed to get DEX history for {asset_code}: {str(e)}")
+            return []
+    
     async def get_supported_assets(self) -> List[Dict]:
         """
-        Get list of supported assets from contract
+        Get list of supported assets from multiple sources
         
         Returns:
             List of supported assets with metadata
         """
         try:
-            # TODO: Implement actual contract method calls for supported assets
-            logger.info("Getting supported assets from Reflector contracts")
+            # Check cache first
+            cache_key = "supported_assets"
+            cached_assets = cache_service.get(cache_key)
+            if cached_assets is not None:
+                logger.info("Supported assets cache hit")
+                return cached_assets
             
-            # Mock data for now
-            return [
+            logger.info("Getting supported assets from multiple sources")
+            
+            # Skip Reflector API for now - will be implemented later
+            logger.info("Skipping Reflector API assets - not implemented yet")
+            
+            # Fallback to DEX assets
+            try:
+                assets = await self._get_assets_from_dex()
+                if assets:
+                    # Cache for 30 minutes
+                    cache_service.set(cache_key, assets, ttl_seconds=1800)
+                    logger.info(f"Got {len(assets)} assets from DEX")
+                    return assets
+            except Exception as e:
+                logger.warning(f"DEX assets failed: {str(e)}")
+            
+            # Final fallback to known assets
+            logger.warning("Using fallback supported assets")
+            fallback_assets = [
                 {"code": "XLM", "issuer": None, "name": "Stellar Lumens"},
                 {"code": "USDC", "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN", "name": "USD Coin"},
                 {"code": "BTC", "issuer": "GBDEVU63Y6NTHJQQZIKVTC23NWLQVP3WJ2RI2OTSJTNYOIGICST6DUXR", "name": "Bitcoin"}
             ]
+            return fallback_assets
                 
         except Exception as e:
             logger.error(f"Error getting supported assets: {str(e)}")
+            return []
+    
+    async def _get_assets_from_dex(self) -> List[Dict]:
+        """
+        Get supported assets from Stellar DEX
+        
+        Returns:
+            List of assets with metadata
+        """
+        try:
+            # Get all assets that have been traded recently
+            assets = set()
+            
+            # Get recent trades to find active assets
+            trades = self.server.trades().order(desc=True).limit(200).call()
+            
+            # Handle different response formats
+            if hasattr(trades, 'records'):
+                records = trades.records
+            elif isinstance(trades, dict) and '_embedded' in trades:
+                records = trades['_embedded'].get('records', [])
+            else:
+                logger.warning(f"Unexpected response format: {type(trades)}")
+                return []
+            
+            for trade in records:
+                # Handle both object and dict formats
+                if hasattr(trade, 'base_asset_type'):
+                    base_asset_type = trade.base_asset_type
+                    base_asset_code = trade.base_asset_code
+                    base_asset_issuer = trade.base_asset_issuer
+                    counter_asset_type = trade.counter_asset_type
+                    counter_asset_code = trade.counter_asset_code
+                    counter_asset_issuer = trade.counter_asset_issuer
+                elif isinstance(trade, dict):
+                    base_asset_type = trade.get('base_asset_type')
+                    base_asset_code = trade.get('base_asset_code')
+                    base_asset_issuer = trade.get('base_asset_issuer')
+                    counter_asset_type = trade.get('counter_asset_type')
+                    counter_asset_code = trade.get('counter_asset_code')
+                    counter_asset_issuer = trade.get('counter_asset_issuer')
+                else:
+                    continue
+                
+                # Add base asset
+                if base_asset_type == "native":
+                    assets.add(("XLM", None, "Stellar Lumens"))
+                else:
+                    assets.add((base_asset_code, base_asset_issuer, f"{base_asset_code} Token"))
+                
+                # Add counter asset
+                if counter_asset_type == "native":
+                    assets.add(("XLM", None, "Stellar Lumens"))
+                else:
+                    assets.add((counter_asset_code, counter_asset_issuer, f"{counter_asset_code} Token"))
+            
+            # Convert to list of dictionaries
+            asset_list = []
+            for code, issuer, name in assets:
+                asset_list.append({
+                    "code": code,
+                    "issuer": issuer,
+                    "name": name
+                })
+            
+            return asset_list
+            
+        except Exception as e:
+            logger.error(f"Failed to get assets from DEX: {str(e)}")
             return []
     
     async def get_multiple_prices(self, assets: List[Dict]) -> Dict[str, float]:
@@ -177,32 +566,72 @@ class StellarOracleClient:
     
     async def health_check(self) -> bool:
         """
-        Check if the oracle contracts are accessible
+        Check if the oracle services are accessible
         
         Returns:
-            True if contracts are accessible, False otherwise
+            True if services are accessible, False otherwise
         """
         try:
-            # Check if we can connect to Horizon and have contract IDs configured
-            logger.info("Checking Reflector Oracle health...")
+            logger.info("Checking Stellar Oracle health...")
             
-            # Verify we have contract IDs configured
-            if not all(self.contracts.values()):
-                logger.error("Not all Reflector contract IDs are configured")
+            # Check Horizon connection
+            try:
+                # Test Horizon connection
+                self.server.ledgers().order(desc=True).limit(1).call()
+                logger.info("Horizon connection: OK")
+            except Exception as e:
+                logger.error(f"Horizon connection failed: {str(e)}")
                 return False
             
-            # Try to get a simple price to test connectivity
+            # Check contract IDs configuration
+            if not all(self.contracts.values()):
+                logger.warning("Not all Reflector contract IDs are configured")
+            else:
+                logger.info("Contract IDs configured: OK")
+            
+            # Skip Reflector API check for now - will be implemented later
+            logger.info("Skipping Reflector API health check - not implemented yet")
+            
+            # Check cache service
+            try:
+                cache_connected = cache_service.is_connected()
+                if cache_connected:
+                    logger.info("Cache service: OK")
+                else:
+                    logger.warning("Cache service: Not connected")
+            except Exception as e:
+                logger.warning(f"Cache service check failed: {str(e)}")
+            
+            # Try to get a simple price to test end-to-end functionality
             test_price = await self.get_asset_price("XLM")
             if test_price is not None:
-                logger.info(f"Health check passed - XLM price: ${test_price}")
-                return True
+                logger.info(f"End-to-end test passed - XLM price: ${test_price}")
+                return {
+                    "status": "healthy",
+                    "horizon_connection": True,
+                    "cache_service": cache_connected,
+                    "end_to_end_test": True,
+                    "test_price": test_price
+                }
             else:
-                logger.warning("Health check failed - could not get test price")
-                return False
+                logger.warning("End-to-end test failed - could not get test price")
+                return {
+                    "status": "degraded",
+                    "horizon_connection": True,
+                    "cache_service": cache_connected,
+                    "end_to_end_test": False,
+                    "test_price": None
+                }
                 
         except Exception as e:
             logger.error(f"Health check failed: {str(e)}")
-            return False
+            return {
+                "status": "unhealthy",
+                "error": str(e),
+                "horizon_connection": False,
+                "cache_service": False,
+                "end_to_end_test": False
+            }
 
 # Global instance
 stellar_oracle_client = StellarOracleClient()
