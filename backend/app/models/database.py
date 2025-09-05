@@ -22,7 +22,7 @@ class User(Base):
     alerts = relationship("RiskAlert", back_populates="user")
 
 class Portfolio(Base):
-    """Portfolio model"""
+    """Portfolio model - Hybrid approach supporting both owned and planned assets"""
     __tablename__ = "portfolios"
     
     id = Column(Integer, primary_key=True, index=True)
@@ -31,6 +31,12 @@ class Portfolio(Base):
     asset_issuer = Column(String(56), nullable=True)  # None for native assets
     balance = Column(Float, nullable=False, default=0.0)
     target_allocation = Column(Float, nullable=False, default=0.0)
+    
+    # Hybrid portfolio fields
+    status = Column(String(20), default='owned')  # 'owned', 'planned', 'target'
+    notes = Column(Text, nullable=True)  # User notes about the asset
+    target_date = Column(DateTime(timezone=True), nullable=True)  # When to acquire planned assets
+    
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
