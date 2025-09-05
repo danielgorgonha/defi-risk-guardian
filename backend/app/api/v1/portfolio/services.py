@@ -368,3 +368,4 @@ class PortfolioService:
         asset_data["price_history"] = history_data
         
         return asset_data
+

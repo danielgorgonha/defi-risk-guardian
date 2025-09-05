@@ -50,3 +50,4 @@ def validate_asset_exists(asset_code: str, asset_issuer: str = None) -> bool:
     # This would involve querying Horizon API to check if the asset exists
     
     return True
+

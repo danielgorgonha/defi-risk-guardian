@@ -90,3 +90,4 @@ class AssetUpdate(BaseModel):
 class SyncRequest(BaseModel):
     """Model for portfolio sync request"""
     force_refresh: bool = False
+
