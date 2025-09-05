@@ -581,7 +581,13 @@ class StellarOracleClient:
                 logger.info("Horizon connection: OK")
             except Exception as e:
                 logger.error(f"Horizon connection failed: {str(e)}")
-                return False
+                return {
+                    "status": "unhealthy",
+                    "horizon_connection": False,
+                    "cache_service": False,
+                    "end_to_end_test": False,
+                    "error": str(e)
+                }
             
             # Check contract IDs configuration
             if not all(self.contracts.values()):
