@@ -71,9 +71,8 @@ async def async_client(db_session):
 @pytest.fixture
 def mock_stellar_oracle_client():
     """Mock Stellar Oracle client for testing."""
-    with patch('app.main.StellarOracleClient') as mock_class:
-        # Create a mock instance
-        mock_instance = Mock()
+    with patch('app.api.v1.portfolio.endpoints.stellar_oracle_client') as mock_instance:
+        # Configure mock methods
         mock_instance.get_asset_price = AsyncMock(return_value=0.12)
         mock_instance.get_supported_assets = AsyncMock(return_value=[
             {"code": "XLM", "issuer": None, "name": "Stellar Lumens"}
@@ -86,8 +85,6 @@ def mock_stellar_oracle_client():
             "external_cex": "CCYOZX2H4Z3HUBXHAP5GLOAYQ73TGLMZB7O6FY7JFB7FUMW3ET5KMJRN6",
             "fiat": "CCSSMW2RJTT4T5CB77P4GM2O7IQP5URZ5ICUEN5Y53D2QDDNAGU5NV4WFI"
         }
-        # Make the class return our mock instance
-        mock_class.return_value = mock_instance
         yield mock_instance
 
 @pytest.fixture

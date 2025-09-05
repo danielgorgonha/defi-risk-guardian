@@ -71,7 +71,7 @@ class TestPortfolioCRUD:
         data = response.json()
         
         assert "wallet_address" in data
-        assert "total_value" in data
+        assert "total_value_usd" in data
         assert "assets" in data
         assert "risk_score" in data
         assert data["wallet_address"] == sample_user_data["wallet_address"]
@@ -104,7 +104,7 @@ class TestPortfolioCRUD:
         
         assert "message" in data
         assert "asset_id" in data
-        assert data["message"] == "Asset added/updated successfully"
+        assert data["message"] == "Asset added successfully"
     
     def test_add_asset_user_not_found(self, client, sample_portfolio_data, sample_wallet_address):
         """Test adding asset for non-existent user"""
@@ -141,40 +141,38 @@ class TestPortfolioCRUD:
         assert data["asset_code"] == sample_portfolio_data["asset_code"]
         assert data["price_usd"] == 0.12  # Mock price
     
-    def test_get_asset_price_asset_not_found(self, client, sample_user_data, sample_wallet_address):
+    def test_get_asset_price_asset_not_found(self, client, sample_user_data, sample_wallet_address, mock_stellar_oracle_client):
         """Test price retrieval for non-existent asset"""
-        # Mock stellar_oracle_client to return None for non-existent asset
-        with patch('app.api.v1.portfolio.stellar_oracle_client') as mock_oracle:
-            mock_oracle.get_asset_price = AsyncMock(return_value=None)
-            
-            response = client.get(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/NONEXISTENT/price")
-            
-            assert response.status_code == 404
-            data = response.json()
-            
-            assert "error" in data
-            assert "Price not found" in data["error"]
+        # Configure mock to return None for non-existent asset
+        mock_stellar_oracle_client.get_asset_price = AsyncMock(return_value=None)
+        
+        response = client.get(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/NONEXISTENT/price")
+        
+        assert response.status_code == 404
+        data = response.json()
+        
+        assert "error" in data
+        assert "Asset not found or price unavailable" in data["error"]
     
-    def test_get_asset_price_stellar_oracle_error(self, client, sample_user_data, sample_portfolio_data):
+    def test_get_asset_price_stellar_oracle_error(self, client, sample_user_data, sample_portfolio_data, mock_stellar_oracle_client):
         """Test price retrieval when Stellar Oracle fails"""
-        # Mock stellar_oracle_client to raise exception
-        with patch('app.api.v1.portfolio.stellar_oracle_client') as mock_oracle:
-            mock_oracle.get_asset_price.side_effect = Exception("Stellar Oracle error")
-            
-            # Create user and add asset
-            user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-            user_data = user_response.json()
-            user_id = user_data["user_id"]
-            assert isinstance(user_id, str)
-            
-            asset_data = sample_portfolio_data
-            client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
-            
-            # Try to get price
-            response = client.get(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/{sample_portfolio_data['asset_code']}/price")
-            
-            assert response.status_code == 500
-            data = response.json()
-            
-            assert "error" in data
-            assert "Error getting price" in data["error"]
+        # Configure mock to raise exception
+        mock_stellar_oracle_client.get_asset_price.side_effect = Exception("Stellar Oracle error")
+        
+        # Create user and add asset
+        user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
+        
+        asset_data = sample_portfolio_data
+        client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
+        
+        # Try to get price
+        response = client.get(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/{sample_portfolio_data['asset_code']}/price")
+        
+        assert response.status_code == 500
+        data = response.json()
+        
+        assert "error" in data
+        assert "Error getting asset price" in data["error"]
