@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from app.core.config import settings
 from app.api.v1 import portfolio, risk, alerts, rebalance
 from app.core.database import engine, Base
-from app.services.reflector import ReflectorClient
+from app.services.stellar_oracle import StellarOracleClient
 from app.services.cache import cache_service
 
 # Load environment variables
@@ -94,18 +94,41 @@ async def health_check():
     redis_stats = cache_service.get_stats()
     redis_status = redis_stats.get("status", "disconnected")
     
-    # Check Reflector service
+    # Check Stellar Oracle service
     try:
-        reflector = ReflectorClient()
-        # Simple test - just check if service can be instantiated
-        reflector_status = "connected"
-    except Exception:
-        reflector_status = "disconnected"
+        stellar_oracle = StellarOracleClient()
+        
+        # Get detailed status information
+        stellar_oracle_status = {
+            "status": "connected",
+            "network": stellar_oracle.network,
+            "horizon_url": stellar_oracle.horizon_url,
+            "contracts_configured": len(stellar_oracle.contracts),
+            "contracts": {
+                "stellar_dex": stellar_oracle.contracts.get("stellar_dex", "not_configured"),
+                "external_cex": stellar_oracle.contracts.get("external_cex", "not_configured"),
+                "fiat": stellar_oracle.contracts.get("fiat", "not_configured")
+            }
+        }
+        
+        # Test a simple price fetch to verify functionality
+        try:
+            native_token_price = await stellar_oracle.get_asset_price("XLM")
+            stellar_oracle_status["native_token_price_usd"] = native_token_price
+            stellar_oracle_status["functionality"] = "operational"
+        except Exception as e:
+            stellar_oracle_status["functionality"] = f"error: {str(e)[:50]}"
+            
+    except Exception as e:
+        stellar_oracle_status = {
+            "status": "disconnected",
+            "error": str(e)[:100]
+        }
     
     overall_status = "healthy" if all([
         db_stats.get("status") == "connected",
         redis_status == "connected", 
-        reflector_status == "connected"
+        stellar_oracle_status.get("status") == "connected"
     ]) else "unhealthy"
     
     return {
@@ -114,7 +137,7 @@ async def health_check():
         "services": {
             "database": db_stats,
             "redis": redis_stats,
-            "reflector": reflector_status
+            "stellar_oracle": stellar_oracle_status
         }
     }
 
