@@ -12,7 +12,7 @@ from tests.fixtures.mock_data import MOCK_PORTFOLIO_ASSETS, MOCK_REBALANCE_SUGGE
 class TestRebalance:
     """Test rebalancing functionality"""
     
-    def test_suggest_rebalance_success(self, client, sample_user_data, mock_reflector_client):
+    def test_suggest_rebalance_success(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test successful rebalance suggestion"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -102,7 +102,7 @@ class TestRebalance:
         assert "detail" in data
         assert "No portfolio found" in data["detail"]
     
-    def test_suggest_rebalance_invalid_allocation(self, client, sample_user_data, mock_reflector_client):
+    def test_suggest_rebalance_invalid_allocation(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test rebalance suggestion with invalid target allocation"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -131,7 +131,7 @@ class TestRebalance:
         # Should still work (validation happens at business logic level)
         assert response.status_code == 200
     
-    def test_execute_rebalance_success(self, client, sample_user_data, mock_reflector_client):
+    def test_execute_rebalance_success(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test successful rebalance execution"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -211,7 +211,7 @@ class TestRebalance:
         assert "detail" in data
         assert "No portfolio found" in data["detail"]
     
-    def test_rebalance_simulation_mode(self, client, sample_user_data, mock_reflector_client):
+    def test_rebalance_simulation_mode(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test rebalance in simulation mode (no actual trades)"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -248,7 +248,7 @@ class TestRebalance:
         assert isinstance(data["proposed_trades"], list)
         assert isinstance(data["projected_allocation"], dict)
     
-    def test_rebalance_with_different_thresholds(self, client, sample_user_data, mock_reflector_client):
+    def test_rebalance_with_different_thresholds(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test rebalance suggestions with different thresholds"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -280,7 +280,7 @@ class TestRebalance:
             assert "rebalance_threshold" in data
             assert data["rebalance_threshold"] == threshold
     
-    def test_rebalance_trade_validation(self, client, sample_user_data, mock_reflector_client):
+    def test_rebalance_trade_validation(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test that rebalance trades are properly validated"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)

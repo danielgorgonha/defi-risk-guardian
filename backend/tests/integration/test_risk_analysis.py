@@ -12,7 +12,7 @@ from tests.fixtures.mock_data import MOCK_PORTFOLIO_ASSETS, MOCK_RISK_METRICS
 class TestRiskAnalysis:
     """Test risk analysis functionality"""
     
-    def test_analyze_portfolio_risk_success(self, client, sample_user_data, mock_reflector_client):
+    def test_analyze_portfolio_risk_success(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test successful portfolio risk analysis"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -124,7 +124,7 @@ class TestRiskAnalysis:
             assert "detail" in data
             assert "Error fetching price data" in data["detail"]
     
-    def test_get_risk_metrics_success(self, client, sample_user_data, mock_reflector_client):
+    def test_get_risk_metrics_success(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test successful risk metrics retrieval"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -187,7 +187,7 @@ class TestRiskAnalysis:
         assert "detail" in data
         assert "No portfolio found" in data["detail"]
     
-    def test_risk_analysis_with_different_analysis_types(self, client, sample_user_data, mock_reflector_client):
+    def test_risk_analysis_with_different_analysis_types(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test risk analysis with different analysis types"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -218,7 +218,7 @@ class TestRiskAnalysis:
             assert "analysis_type" in data
             assert data["analysis_type"] == analysis_type
     
-    def test_risk_analysis_recommendations_quality(self, client, sample_user_data, mock_reflector_client):
+    def test_risk_analysis_recommendations_quality(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test that risk analysis provides meaningful recommendations"""
         # Create user and portfolio
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)

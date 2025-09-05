@@ -2,7 +2,7 @@
 Unit tests for portfolio CRUD operations
 """
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, AsyncMock
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -50,7 +50,7 @@ class TestPortfolioCRUD:
         # Should still create user (validation happens at model level)
         assert response.status_code == 200
     
-    def test_get_portfolio_success(self, client, sample_user_data, sample_portfolio_data, mock_reflector_client):
+    def test_get_portfolio_success(self, client, sample_user_data, sample_portfolio_data, mock_stellar_oracle_client):
         """Test successful portfolio retrieval"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -112,7 +112,7 @@ class TestPortfolioCRUD:
         assert "error" in data
         assert "User not found" in data["error"]
     
-    def test_get_asset_price_success(self, client, sample_user_data, sample_portfolio_data, mock_reflector_client):
+    def test_get_asset_price_success(self, client, sample_user_data, sample_portfolio_data, mock_stellar_oracle_client):
         """Test successful asset price retrieval"""
         # Create user and add asset
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -135,21 +135,23 @@ class TestPortfolioCRUD:
     
     def test_get_asset_price_asset_not_found(self, client, sample_user_data, sample_wallet_address):
         """Test price retrieval for non-existent asset"""
-        response = client.get(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/NONEXISTENT/price")
-        
-        assert response.status_code == 404
-        data = response.json()
-        
-        assert "error" in data
-        assert "Price not found" in data["error"]
+        # Mock stellar_oracle_client to return None for non-existent asset
+        with patch('app.api.v1.portfolio.stellar_oracle_client') as mock_oracle:
+            mock_oracle.get_asset_price = AsyncMock(return_value=None)
+            
+            response = client.get(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/NONEXISTENT/price")
+            
+            assert response.status_code == 404
+            data = response.json()
+            
+            assert "error" in data
+            assert "Price not found" in data["error"]
     
-    def test_get_asset_price_reflector_error(self, client, sample_user_data, sample_portfolio_data):
-        """Test price retrieval when Reflector API fails"""
-        # Mock Reflector client to raise exception
-        with patch('app.services.reflector.ReflectorClient') as mock_reflector:
-            mock_instance = Mock()
-            mock_instance.get_asset_price.side_effect = Exception("Reflector API error")
-            mock_reflector.return_value = mock_instance
+    def test_get_asset_price_stellar_oracle_error(self, client, sample_user_data, sample_portfolio_data):
+        """Test price retrieval when Stellar Oracle fails"""
+        # Mock stellar_oracle_client to raise exception
+        with patch('app.api.v1.portfolio.stellar_oracle_client') as mock_oracle:
+            mock_oracle.get_asset_price.side_effect = Exception("Stellar Oracle error")
             
             # Create user and add asset
             user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
@@ -161,8 +163,8 @@ class TestPortfolioCRUD:
             # Try to get price
             response = client.get(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/{sample_portfolio_data['asset_code']}/price")
             
-            assert response.status_code == 404
+            assert response.status_code == 500
             data = response.json()
             
             assert "error" in data
-            assert "Price not found" in data["error"]
+            assert "Error getting price" in data["error"]

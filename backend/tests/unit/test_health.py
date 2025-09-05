@@ -11,7 +11,7 @@ from app.main import app
 class TestHealthEndpoint:
     """Test health check endpoint functionality"""
     
-    def test_health_check_success(self, client, mock_reflector_client, mock_cache_service):
+    def test_health_check_success(self, client, mock_stellar_oracle_client, mock_cache_service):
         """Test successful health check response"""
         response = client.get("/health")
         
@@ -27,7 +27,7 @@ class TestHealthEndpoint:
         services = data["services"]
         assert "database" in services
         assert "redis" in services
-        assert "reflector" in services
+        assert "stellar_oracle" in services
         
         # Check database status
         assert services["database"]["status"] == "connected"
@@ -38,10 +38,10 @@ class TestHealthEndpoint:
         assert services["redis"]["status"] == "connected"
         assert "version" in services["redis"]
         
-        # Check Reflector status (returned as string, not object)
-        assert services["reflector"] == "connected"
+        # Check Stellar Oracle status (returned as string, not object)
+        assert services["stellar_oracle"] == "connected"
     
-    def test_health_check_timestamp_format(self, client, mock_reflector_client, mock_cache_service):
+    def test_health_check_timestamp_format(self, client, mock_stellar_oracle_client, mock_cache_service):
         """Test that timestamp is in correct ISO format"""
         response = client.get("/health")
         
@@ -60,7 +60,7 @@ class TestHealthEndpoint:
         except ValueError:
             pytest.fail("Invalid timestamp format")
     
-    def test_health_check_overall_status_healthy(self, client, mock_reflector_client, mock_cache_service):
+    def test_health_check_overall_status_healthy(self, client, mock_stellar_oracle_client, mock_cache_service):
         """Test overall status when all services are healthy"""
         response = client.get("/health")
         

@@ -24,7 +24,7 @@ class TestRebalance:
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client for price data
-        with patch('app.api.v1.rebalance.reflector_client') as mock_reflector:
+        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_reflector:
             mock_reflector.get_asset_price = AsyncMock(return_value=0.12)
             
             # Request rebalancing suggestion
@@ -102,7 +102,7 @@ class TestRebalance:
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client to raise exception
-        with patch('app.api.v1.rebalance.reflector_client') as mock_reflector:
+        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_reflector:
             mock_reflector.get_asset_price = AsyncMock(side_effect=Exception("Reflector API error"))
             
             rebalance_request = {
@@ -250,7 +250,7 @@ class TestRebalance:
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client
-        with patch('app.api.v1.rebalance.reflector_client') as mock_reflector:
+        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_reflector:
             mock_reflector.get_asset_price = AsyncMock(return_value=0.12)
             
             # Test with invalid threshold (negative)

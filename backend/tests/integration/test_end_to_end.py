@@ -13,7 +13,7 @@ from tests.fixtures.mock_data import MOCK_PORTFOLIO_ASSETS, MOCK_ALERTS
 class TestEndToEnd:
     """End-to-end integration tests"""
     
-    def test_complete_user_journey(self, client, sample_user_data, mock_reflector_client):
+    def test_complete_user_journey(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test complete user journey from registration to risk analysis"""
         wallet_address = sample_user_data["wallet_address"]
         
@@ -163,7 +163,7 @@ class TestEndToEnd:
         response = client.post("/api/v1/rebalance/suggest", json=rebalance_request)
         assert response.status_code == 404
     
-    def test_concurrent_operations(self, client, sample_user_data, mock_reflector_client):
+    def test_concurrent_operations(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test concurrent operations on the same user"""
         wallet_address = sample_user_data["wallet_address"]
         
@@ -194,7 +194,7 @@ class TestEndToEnd:
         portfolio_data = portfolio_response.json()
         assert len(portfolio_data["assets"]) == len(MOCK_PORTFOLIO_ASSETS)
     
-    def test_data_consistency(self, client, sample_user_data, mock_reflector_client):
+    def test_data_consistency(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test data consistency across different endpoints"""
         wallet_address = sample_user_data["wallet_address"]
         
@@ -234,7 +234,7 @@ class TestEndToEnd:
         # Values should be close (allowing for small floating point differences)
         assert abs(portfolio_value - metrics_value) < 0.01
     
-    def test_performance_under_load(self, client, sample_user_data, mock_reflector_client):
+    def test_performance_under_load(self, client, sample_user_data, mock_stellar_oracle_client):
         """Test performance under simulated load"""
         wallet_address = sample_user_data["wallet_address"]
         

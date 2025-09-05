@@ -69,15 +69,13 @@ async def async_client(db_session):
     app.dependency_overrides.clear()
 
 @pytest.fixture
-def mock_reflector_client():
-    """Mock Reflector client for testing."""
-    with patch('app.api.v1.portfolio.reflector_client') as mock:
+def mock_stellar_oracle_client():
+    """Mock Stellar Oracle client for testing."""
+    with patch('app.api.v1.portfolio.stellar_oracle_client') as mock:
         mock.get_asset_price = AsyncMock(return_value=0.12)
-        mock.get_asset_info = AsyncMock(return_value={
-            "code": "XLM",
-            "issuer": "native",
-            "name": "Stellar Lumens"
-        })
+        mock.get_supported_assets = AsyncMock(return_value=[
+            {"code": "XLM", "issuer": None, "name": "Stellar Lumens"}
+        ])
         yield mock
 
 @pytest.fixture

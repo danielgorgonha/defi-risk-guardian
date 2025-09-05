@@ -24,7 +24,7 @@ class TestRiskAnalysis:
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client for price data
-        with patch('app.api.v1.risk.reflector_client') as mock_reflector:
+        with patch('app.api.v1.risk.stellar_oracle_client') as mock_reflector:
             from unittest.mock import AsyncMock
             mock_reflector.get_asset_price = AsyncMock(return_value=0.12)
             
@@ -115,8 +115,8 @@ class TestRiskAnalysis:
         
         response = client.post("/api/v1/risk/analyze", json=risk_request)
         
-        # Should return 400 for bad request (invalid confidence level)
-        assert response.status_code == 400
+        # Should return 422 for validation error (invalid confidence level)
+        assert response.status_code == 422
     
     def test_get_risk_metrics_success(self, client, sample_user_data, sample_portfolio_data):
         """Test successful risk metrics retrieval"""
@@ -126,7 +126,7 @@ class TestRiskAnalysis:
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client
-        with patch('app.api.v1.risk.reflector_client') as mock_reflector:
+        with patch('app.api.v1.risk.stellar_oracle_client') as mock_reflector:
             from unittest.mock import AsyncMock
             mock_reflector.get_asset_price = AsyncMock(return_value=0.12)
             
@@ -194,7 +194,7 @@ class TestRiskAnalysis:
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client to raise exception
-        with patch('app.api.v1.risk.reflector_client') as mock_reflector:
+        with patch('app.api.v1.risk.stellar_oracle_client') as mock_reflector:
             from unittest.mock import AsyncMock
             mock_reflector.get_asset_price = AsyncMock(side_effect=Exception("Reflector API error"))
             
