@@ -57,10 +57,7 @@ class TestPortfolioCRUD:
         user_id = user_response.json()["user_id"]
         
         # Add portfolio asset
-        portfolio_data = {
-            **sample_portfolio_data,
-            "user_id": user_id
-        }
+        portfolio_data = sample_portfolio_data
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=portfolio_data)
         
         # Get portfolio
@@ -93,10 +90,7 @@ class TestPortfolioCRUD:
         user_id = user_response.json()["user_id"]
         
         # Add asset
-        asset_data = {
-            **sample_portfolio_data,
-            "user_id": user_id
-        }
+        asset_data = sample_portfolio_data
         response = client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         assert response.status_code == 200
@@ -104,14 +98,11 @@ class TestPortfolioCRUD:
         
         assert "message" in data
         assert "asset_id" in data
-        assert data["message"] == "Asset added successfully"
+        assert data["message"] == "Asset added/updated successfully"
     
     def test_add_asset_user_not_found(self, client, sample_portfolio_data, sample_wallet_address):
         """Test adding asset for non-existent user"""
-        asset_data = {
-            **sample_portfolio_data,
-            "user_id": "non-existent-id"
-        }
+        asset_data = sample_portfolio_data
         
         response = client.post(f"/api/v1/portfolio/{sample_wallet_address}/assets", json=asset_data)
         
@@ -127,10 +118,7 @@ class TestPortfolioCRUD:
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
         user_id = user_response.json()["user_id"]
         
-        asset_data = {
-            **sample_portfolio_data,
-            "user_id": user_id
-        }
+        asset_data = sample_portfolio_data
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Get asset price
@@ -140,10 +128,10 @@ class TestPortfolioCRUD:
         data = response.json()
         
         assert "asset_code" in data
-        assert "price" in data
-        assert "last_updated" in data
+        assert "price_usd" in data
+        assert "timestamp" in data
         assert data["asset_code"] == sample_portfolio_data["asset_code"]
-        assert data["price"] == 0.12  # Mock price
+        assert data["price_usd"] == 0.12  # Mock price
     
     def test_get_asset_price_asset_not_found(self, client, sample_user_data, sample_wallet_address):
         """Test price retrieval for non-existent asset"""
@@ -167,10 +155,7 @@ class TestPortfolioCRUD:
             user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
             user_id = user_response.json()["user_id"]
             
-            asset_data = {
-                **sample_portfolio_data,
-                "user_id": user_id
-            }
+            asset_data = sample_portfolio_data
             client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
             
             # Try to get price

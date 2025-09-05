@@ -71,16 +71,14 @@ async def async_client(db_session):
 @pytest.fixture
 def mock_reflector_client():
     """Mock Reflector client for testing."""
-    with patch('app.services.reflector.ReflectorClient') as mock:
-        mock_instance = Mock()
-        mock_instance.get_asset_price = AsyncMock(return_value=0.12)
-        mock_instance.get_asset_info = AsyncMock(return_value={
+    with patch('app.api.v1.portfolio.reflector_client') as mock:
+        mock.get_asset_price = AsyncMock(return_value=0.12)
+        mock.get_asset_info = AsyncMock(return_value={
             "code": "XLM",
             "issuer": "native",
             "name": "Stellar Lumens"
         })
-        mock.return_value = mock_instance
-        yield mock_instance
+        yield mock
 
 @pytest.fixture
 def mock_cache_service():
@@ -117,7 +115,8 @@ def sample_portfolio_data():
     return {
         "asset_code": "XLM",
         "asset_issuer": "native",
-        "balance": 1000.0
+        "balance": 1000.0,
+        "target_allocation": 0.3
     }
 
 @pytest.fixture

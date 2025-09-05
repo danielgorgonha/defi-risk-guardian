@@ -138,6 +138,7 @@ async def add_asset(
             # Update existing asset
             existing_asset.balance = asset_data.balance
             existing_asset.target_allocation = asset_data.target_allocation
+            asset_id = existing_asset.id
         else:
             # Create new asset
             new_asset = Portfolio(
@@ -148,10 +149,15 @@ async def add_asset(
                 target_allocation=asset_data.target_allocation
             )
             db.add(new_asset)
+            db.flush()  # Flush to get the ID
+            asset_id = new_asset.id
         
         db.commit()
         
-        return {"message": "Asset added/updated successfully"}
+        return {
+            "asset_id": asset_id,
+            "message": "Asset added/updated successfully"
+        }
         
     except HTTPException:
         raise
