@@ -49,8 +49,8 @@ class TestAlertsCRUD:
         assert response.status_code == 404
         data = response.json()
         
-        assert "detail" in data
-        assert "User not found" in data["detail"]
+        assert "error" in data
+        assert "User not found" in data["error"]
     
     def test_get_active_alerts_success(self, client, sample_user_data, sample_alert_data):
         """Test successful active alerts retrieval"""
@@ -86,8 +86,8 @@ class TestAlertsCRUD:
         assert response.status_code == 404
         data = response.json()
         
-        assert "detail" in data
-        assert "User not found" in data["detail"]
+        assert "error" in data
+        assert "User not found" in data["error"]
     
     def test_create_alert_success(self, client, sample_user_data, sample_alert_data):
         """Test successful alert creation"""
@@ -121,8 +121,8 @@ class TestAlertsCRUD:
         assert response.status_code == 404
         data = response.json()
         
-        assert "detail" in data
-        assert "User not found" in data["detail"]
+        assert "error" in data
+        assert "User not found" in data["error"]
     
     def test_create_alert_invalid_data(self, client, sample_user_data):
         """Test alert creation with invalid data"""
@@ -169,13 +169,13 @@ class TestAlertsCRUD:
     
     def test_delete_alert_not_found(self, client):
         """Test alert deletion for non-existent alert"""
-        response = client.delete("/api/v1/alerts/non-existent-id")
+        response = client.delete("/api/v1/alerts/999")
         
         assert response.status_code == 404
         data = response.json()
         
-        assert "detail" in data
-        assert "Alert not found" in data["detail"]
+        assert "error" in data
+        assert "Alert not found" in data["error"]
     
     def test_get_alert_stats_success(self, client, sample_user_data, sample_alert_data):
         """Test successful alert statistics retrieval"""
@@ -204,13 +204,13 @@ class TestAlertsCRUD:
         
         assert "total_alerts" in data
         assert "active_alerts" in data
-        assert "severity_breakdown" in data
-        assert "alert_type_breakdown" in data
+        assert "by_severity" in data
+        assert "by_type" in data
         
         assert data["total_alerts"] >= 3
         assert data["active_alerts"] >= 0
-        assert len(data["severity_breakdown"]) > 0
-        assert len(data["alert_type_breakdown"]) > 0
+        assert len(data["by_severity"]) > 0
+        assert len(data["by_type"]) > 0
     
     def test_get_alert_stats_user_not_found(self, client, sample_wallet_address):
         """Test alert statistics retrieval for non-existent user"""
@@ -219,5 +219,5 @@ class TestAlertsCRUD:
         assert response.status_code == 404
         data = response.json()
         
-        assert "detail" in data
-        assert "User not found" in data["detail"]
+        assert "error" in data
+        assert "User not found" in data["error"]
