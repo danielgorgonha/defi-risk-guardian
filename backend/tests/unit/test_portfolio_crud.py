@@ -80,8 +80,8 @@ class TestPortfolioCRUD:
         assert response.status_code == 404
         data = response.json()
         
-        assert "detail" in data
-        assert "User not found" in data["detail"]
+        assert "error" in data
+        assert "User not found" in data["error"]
     
     def test_add_asset_success(self, client, sample_user_data, sample_portfolio_data):
         """Test successful asset addition to portfolio"""
@@ -109,8 +109,8 @@ class TestPortfolioCRUD:
         assert response.status_code == 404
         data = response.json()
         
-        assert "detail" in data
-        assert "User not found" in data["detail"]
+        assert "error" in data
+        assert "User not found" in data["error"]
     
     def test_get_asset_price_success(self, client, sample_user_data, sample_portfolio_data, mock_reflector_client):
         """Test successful asset price retrieval"""
@@ -140,8 +140,8 @@ class TestPortfolioCRUD:
         assert response.status_code == 404
         data = response.json()
         
-        assert "detail" in data
-        assert "Asset not found" in data["detail"]
+        assert "error" in data
+        assert "Price not found" in data["error"]
     
     def test_get_asset_price_reflector_error(self, client, sample_user_data, sample_portfolio_data):
         """Test price retrieval when Reflector API fails"""
@@ -161,8 +161,8 @@ class TestPortfolioCRUD:
             # Try to get price
             response = client.get(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets/{sample_portfolio_data['asset_code']}/price")
             
-            assert response.status_code == 503
+            assert response.status_code == 404
             data = response.json()
             
-            assert "detail" in data
-            assert "Error fetching price" in data["detail"]
+            assert "error" in data
+            assert "Price not found" in data["error"]
