@@ -133,8 +133,8 @@ class PortfolioService:
         if not validate_stellar_address(wallet_address):
             raise ValueError("Invalid wallet address format")
         
-        # Validate asset exists (basic validation for now)
-        if not validate_asset_exists(asset_data.asset_code, asset_data.asset_issuer):
+        # Validate asset exists in the Stellar network
+        if not await validate_asset_exists(asset_data.asset_code, asset_data.asset_issuer):
             raise ValueError("Invalid asset")
         
         user = self.db.query(User).filter(User.wallet_address == wallet_address).first()

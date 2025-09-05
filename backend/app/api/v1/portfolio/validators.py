@@ -5,8 +5,11 @@ This module contains validation functions used throughout the portfolio domain.
 """
 
 import re
-from stellar_sdk import Keypair
-from stellar_sdk.exceptions import Ed25519PublicKeyInvalidError
+import asyncio
+from typing import Optional
+from stellar_sdk import Keypair, Server
+from stellar_sdk.exceptions import Ed25519PublicKeyInvalidError, NotFoundError
+from app.core.config import settings
 
 
 def validate_stellar_address(address: str) -> bool:
@@ -28,12 +31,16 @@ def validate_stellar_address(address: str) -> bool:
         return False
 
 
-def validate_asset_exists(asset_code: str, asset_issuer: str = None) -> bool:
+async def validate_asset_exists(asset_code: str, asset_issuer: Optional[str] = None) -> bool:
     """
     Validate if an asset exists in the Stellar network.
     
-    TODO: Implement actual network validation via Horizon API
-    For now, returns True for basic validation
+    Args:
+        asset_code: The asset code (e.g., 'XLM', 'USDC')
+        asset_issuer: The asset issuer public key (required for custom assets)
+    
+    Returns:
+        bool: True if asset exists and is valid, False otherwise
     """
     if not asset_code or not isinstance(asset_code, str):
         return False
@@ -46,8 +53,42 @@ def validate_asset_exists(asset_code: str, asset_issuer: str = None) -> bool:
     if asset_code != 'XLM' and not asset_issuer:
         return False
     
-    # TODO: Add actual network validation
-    # This would involve querying Horizon API to check if the asset exists
+    # XLM (native asset) always exists
+    if asset_code == 'XLM':
+        return True
     
-    return True
+    # Validate issuer address format if provided
+    if asset_issuer and not validate_stellar_address(asset_issuer):
+        return False
+    
+    # Query Horizon API to check if the asset exists
+    try:
+        server = Server(settings.HORIZON_URL)
+        
+        # Get asset details from Horizon API
+        asset = server.assets().for_code(asset_code).for_issuer(asset_issuer).call()
+        
+        # If we get here, the asset exists
+        return True
+        
+    except NotFoundError:
+        # Asset not found in the network
+        return False
+    except Exception:
+        # Any other error (network issues, etc.) - be conservative and return False
+        return False
+
+
+def validate_asset_exists_sync(asset_code: str, asset_issuer: Optional[str] = None) -> bool:
+    """
+    Synchronous wrapper for validate_asset_exists.
+    
+    This is useful when you need to call the async function from a sync context.
+    """
+    try:
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(validate_asset_exists(asset_code, asset_issuer))
+    except RuntimeError:
+        # If no event loop is running, create a new one
+        return asyncio.run(validate_asset_exists(asset_code, asset_issuer))
 
