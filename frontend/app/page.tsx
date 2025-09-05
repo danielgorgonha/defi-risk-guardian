@@ -203,7 +203,7 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-400 text-white rounded-xl hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 transition-all duration-300 font-semibold text-lg min-w-[140px]"
+                    className="px-8 py-4 bg-gradient-to-r from-blue-900 to-cyan-500 text-white rounded-xl hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 transition-all duration-300 font-semibold text-lg min-w-[140px]"
                   >
                     {isLoading ? (
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
