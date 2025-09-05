@@ -1,5 +1,5 @@
 """
-Unit tests for portfolio CRUD operations
+Integration tests for portfolio CRUD operations
 """
 import pytest
 from unittest.mock import patch, Mock, AsyncMock
@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.models.database import User, Portfolio
 
-@pytest.mark.unit
+@pytest.mark.integration
 class TestPortfolioCRUD:
     """Test portfolio CRUD operations"""
     

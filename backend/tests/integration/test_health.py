@@ -1,5 +1,5 @@
 """
-Unit tests for health check endpoint
+Integration tests for health check endpoint
 """
 import pytest
 from unittest.mock import patch, Mock
@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
-@pytest.mark.unit
+@pytest.mark.integration
 class TestHealthEndpoint:
     """Test health check endpoint functionality"""
     
