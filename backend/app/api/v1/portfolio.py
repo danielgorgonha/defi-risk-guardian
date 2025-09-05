@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 from app.core.database import get_db
 from app.models.database import User, Portfolio, PriceHistory
-from app.services.reflector import reflector_client
+from app.services.stellar_oracle import stellar_oracle_client
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -77,7 +77,7 @@ async def get_portfolio(wallet_address: str, db: Session = Depends(get_db)):
         
         for portfolio in portfolios:
             # Get current price
-            price = await reflector_client.get_asset_price(
+            price = await stellar_oracle_client.get_asset_price(
                 portfolio.asset_code, 
                 portfolio.asset_issuer
             )
@@ -176,7 +176,7 @@ async def get_asset_price(
 ):
     """Get current price for a specific asset"""
     try:
-        price = await reflector_client.get_asset_price(asset_code, asset_issuer)
+        price = await stellar_oracle_client.get_asset_price(asset_code, asset_issuer)
         
         if price is None:
             raise HTTPException(status_code=404, detail="Price not found")

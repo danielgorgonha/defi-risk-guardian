@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from app.core.database import get_db
 from app.models.database import User, Portfolio, RebalanceHistory
-from app.services.reflector import reflector_client
+from app.services.stellar_oracle import stellar_oracle_client
 from pydantic import BaseModel
 from datetime import datetime
 import json
@@ -55,7 +55,7 @@ async def suggest_rebalancing(
         total_value = 0.0
         
         for portfolio in portfolios:
-            price = await reflector_client.get_asset_price(
+            price = await stellar_oracle_client.get_asset_price(
                 portfolio.asset_code, 
                 portfolio.asset_issuer
             )

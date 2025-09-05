@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from app.core.database import get_db
 from app.models.database import User, Portfolio, RiskMetrics
-from app.services.reflector import reflector_client
-from pydantic import BaseModel
+from app.services.stellar_oracle import stellar_oracle_client
+from pydantic import BaseModel, Field
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -18,7 +18,7 @@ router = APIRouter()
 # Pydantic models
 class RiskAnalysisRequest(BaseModel):
     wallet_address: str
-    confidence_level: float = 0.95
+    confidence_level: float = Field(default=0.95, ge=0.0, le=1.0)
 
 class RiskAnalysisResponse(BaseModel):
     portfolio_value: float
@@ -53,7 +53,7 @@ async def analyze_portfolio_risk(
         total_value = 0.0
         
         for portfolio in portfolios:
-            price = await reflector_client.get_asset_price(
+            price = await stellar_oracle_client.get_asset_price(
                 portfolio.asset_code, 
                 portfolio.asset_issuer
             )
