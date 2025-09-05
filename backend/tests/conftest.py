@@ -71,12 +71,24 @@ async def async_client(db_session):
 @pytest.fixture
 def mock_stellar_oracle_client():
     """Mock Stellar Oracle client for testing."""
-    with patch('app.api.v1.portfolio.stellar_oracle_client') as mock:
-        mock.get_asset_price = AsyncMock(return_value=0.12)
-        mock.get_supported_assets = AsyncMock(return_value=[
+    with patch('app.main.StellarOracleClient') as mock_class:
+        # Create a mock instance
+        mock_instance = Mock()
+        mock_instance.get_asset_price = AsyncMock(return_value=0.12)
+        mock_instance.get_supported_assets = AsyncMock(return_value=[
             {"code": "XLM", "issuer": None, "name": "Stellar Lumens"}
         ])
-        yield mock
+        # Mock properties for health check
+        mock_instance.network = "testnet"
+        mock_instance.horizon_url = "https://horizon-testnet.stellar.org"
+        mock_instance.contracts = {
+            "stellar_dex": "CAVLP2FY3AJX4Q3FKF2FBJCM2P2N3FWYY6WRT53NQOTBS7J5UQ4SD6HLP",
+            "external_cex": "CCYOZX2H4Z3HUBXHAP5GLOAYQ73TGLMZB7O6FY7JFB7FUMW3ET5KMJRN6",
+            "fiat": "CCSSMW2RJTT4T5CB77P4GM2O7IQP5URZ5ICUEN5Y53D2QDDNAGU5NV4WFI"
+        }
+        # Make the class return our mock instance
+        mock_class.return_value = mock_instance
+        yield mock_instance
 
 @pytest.fixture
 def mock_cache_service():
@@ -97,13 +109,13 @@ def mock_cache_service():
 @pytest.fixture
 def sample_wallet_address():
     """Sample wallet address for testing."""
-    return "GDEMO123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    return "GDVKVA22NDD3M5TBUHX7LPOQLPDRH6GVB63WXLRGDVWJDIERA5EYT25O"
 
 @pytest.fixture
 def sample_user_data():
     """Sample user data for testing."""
     return {
-        "wallet_address": "GDEMO123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+        "wallet_address": "GDVKVA22NDD3M5TBUHX7LPOQLPDRH6GVB63WXLRGDVWJDIERA5EYT25O",
         "risk_tolerance": 0.5
     }
 

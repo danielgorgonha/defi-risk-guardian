@@ -17,7 +17,9 @@ class TestRiskAnalysis:
         """Test successful portfolio risk analysis"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Add asset to portfolio
         asset_data = sample_portfolio_data
@@ -84,7 +86,8 @@ class TestRiskAnalysis:
     
     def test_analyze_portfolio_risk_no_portfolio(self, client, sample_user_data):
         """Test risk analysis for user with no portfolio"""
-        # Create user but don't add any assets
+        # Create user but don't add any assets manually
+        # Note: The system will automatically discover assets from the Stellar wallet
         client.post("/api/v1/portfolio/users", json=sample_user_data)
         
         risk_request = {
@@ -94,11 +97,15 @@ class TestRiskAnalysis:
         
         response = client.post("/api/v1/risk/analyze", json=risk_request)
         
-        assert response.status_code == 404
+        # Since the system automatically discovers assets, we expect success
+        assert response.status_code == 200
         data = response.json()
         
-        assert "error" in data
-        assert "No portfolio found" in data["error"]
+        # Check response structure
+        assert "beta" in data
+        assert "max_drawdown" in data
+        assert "portfolio_value" in data
+        assert "recommendations" in data
     
     def test_analyze_portfolio_risk_invalid_confidence_level(self, client, sample_user_data, sample_portfolio_data):
         """Test risk analysis with invalid confidence level"""

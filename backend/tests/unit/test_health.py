@@ -38,8 +38,15 @@ class TestHealthEndpoint:
         assert services["redis"]["status"] == "connected"
         assert "version" in services["redis"]
         
-        # Check Stellar Oracle status (returned as string, not object)
-        assert services["stellar_oracle"] == "connected"
+        # Check Stellar Oracle status (returned as object with details)
+        stellar_oracle = services["stellar_oracle"]
+        assert stellar_oracle["status"] == "connected"
+        assert "network" in stellar_oracle
+        assert "horizon_url" in stellar_oracle
+        assert "contracts_configured" in stellar_oracle
+        assert "contracts" in stellar_oracle
+        assert "native_token_price_usd" in stellar_oracle
+        assert "functionality" in stellar_oracle
     
     def test_health_check_timestamp_format(self, client, mock_stellar_oracle_client, mock_cache_service):
         """Test that timestamp is in correct ISO format"""

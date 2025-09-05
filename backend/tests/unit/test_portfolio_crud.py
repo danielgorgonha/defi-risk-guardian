@@ -23,6 +23,7 @@ class TestPortfolioCRUD:
         assert "user_id" in data
         assert data["message"] == "User created successfully"
         assert data["user_id"] is not None
+        assert isinstance(data["user_id"], str)
     
     def test_create_user_duplicate(self, client, sample_user_data):
         """Test creating user with existing wallet address"""
@@ -37,24 +38,27 @@ class TestPortfolioCRUD:
         
         assert data["message"] == "User already exists"
         assert "user_id" in data
+        assert isinstance(data["user_id"], str)
     
     def test_create_user_invalid_data(self, client):
         """Test user creation with invalid data"""
         invalid_data = {
-            "wallet_address": "invalid_address",
-            "risk_tolerance": 1.5  # Invalid: should be 0-1
+            "wallet_address": "INVALID123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ123456",  # Invalid format
+            "risk_tolerance": 0.5
         }
         
         response = client.post("/api/v1/portfolio/users", json=invalid_data)
         
-        # Should still create user (validation happens at model level)
-        assert response.status_code == 200
+        # Should fail validation due to invalid wallet address
+        assert response.status_code == 422
     
     def test_get_portfolio_success(self, client, sample_user_data, sample_portfolio_data, mock_stellar_oracle_client):
         """Test successful portfolio retrieval"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Add portfolio asset
         portfolio_data = sample_portfolio_data
@@ -87,7 +91,9 @@ class TestPortfolioCRUD:
         """Test successful asset addition to portfolio"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Add asset
         asset_data = sample_portfolio_data
@@ -116,7 +122,9 @@ class TestPortfolioCRUD:
         """Test successful asset price retrieval"""
         # Create user and add asset
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         asset_data = sample_portfolio_data
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
@@ -155,7 +163,9 @@ class TestPortfolioCRUD:
             
             # Create user and add asset
             user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-            user_id = user_response.json()["user_id"]
+            user_data = user_response.json()
+            user_id = user_data["user_id"]
+            assert isinstance(user_id, str)
             
             asset_data = sample_portfolio_data
             client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)

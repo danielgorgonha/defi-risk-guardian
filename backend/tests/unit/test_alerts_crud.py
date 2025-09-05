@@ -16,7 +16,9 @@ class TestAlertsCRUD:
         """Test successful alerts retrieval"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Create alert
         alert_data = {
@@ -56,7 +58,9 @@ class TestAlertsCRUD:
         """Test successful active alerts retrieval"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Create active alert
         alert_data = {
@@ -93,7 +97,9 @@ class TestAlertsCRUD:
         """Test successful alert creation"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Create alert
         alert_data = {
@@ -128,7 +134,9 @@ class TestAlertsCRUD:
         """Test alert creation with invalid data"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Invalid alert data
         invalid_alert_data = {
@@ -148,7 +156,9 @@ class TestAlertsCRUD:
         """Test successful alert deletion"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Create alert
         alert_data = {
@@ -181,7 +191,9 @@ class TestAlertsCRUD:
         """Test successful alert statistics retrieval"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Create multiple alerts with different severities
         alert_types = ["high_volatility", "rebalance_needed", "liquidity_risk"]

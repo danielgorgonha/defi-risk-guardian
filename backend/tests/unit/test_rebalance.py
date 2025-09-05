@@ -17,15 +17,17 @@ class TestRebalance:
         """Test successful rebalancing suggestion"""
         # Create user first
         user_response = client.post("/api/v1/portfolio/users", json=sample_user_data)
-        user_id = user_response.json()["user_id"]
+        user_data = user_response.json()
+        user_id = user_data["user_id"]
+        assert isinstance(user_id, str)
         
         # Add asset to portfolio
         asset_data = sample_portfolio_data
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client for price data
-        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_reflector:
-            mock_reflector.get_asset_price = AsyncMock(return_value=0.12)
+        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_oracle:
+            mock_oracle.get_asset_price = AsyncMock(return_value=0.12)
             
             # Request rebalancing suggestion
             rebalance_request = {
@@ -77,7 +79,8 @@ class TestRebalance:
     
     def test_suggest_rebalancing_no_portfolio(self, client, sample_user_data):
         """Test rebalancing suggestion for user with no portfolio"""
-        # Create user but don't add any assets
+        # Create user but don't add any assets manually
+        # Note: The system will automatically discover assets from the Stellar wallet
         client.post("/api/v1/portfolio/users", json=sample_user_data)
         
         rebalance_request = {
@@ -88,11 +91,17 @@ class TestRebalance:
         
         response = client.post("/api/v1/rebalance/suggest", json=rebalance_request)
         
-        assert response.status_code == 404
+        # Since the system automatically discovers assets, we expect success
+        assert response.status_code == 200
         data = response.json()
         
-        assert "error" in data
-        assert "No portfolio found" in data["error"]
+        # Check response structure
+        assert "should_rebalance" in data
+        assert "current_allocation" in data
+        assert "target_allocation" in data
+        assert "suggested_orders" in data
+        assert "estimated_cost" in data
+        assert "risk_improvement" in data
     
     def test_suggest_rebalancing_reflector_error(self, client, sample_user_data, sample_portfolio_data):
         """Test rebalancing suggestion when Reflector API fails"""
@@ -102,8 +111,8 @@ class TestRebalance:
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client to raise exception
-        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_reflector:
-            mock_reflector.get_asset_price = AsyncMock(side_effect=Exception("Reflector API error"))
+        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_oracle:
+            mock_oracle.get_asset_price = AsyncMock(side_effect=Exception("Reflector API error"))
             
             rebalance_request = {
                 "wallet_address": sample_user_data["wallet_address"],
@@ -250,8 +259,8 @@ class TestRebalance:
         client.post(f"/api/v1/portfolio/{sample_user_data['wallet_address']}/assets", json=asset_data)
         
         # Mock Reflector client
-        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_reflector:
-            mock_reflector.get_asset_price = AsyncMock(return_value=0.12)
+        with patch('app.api.v1.rebalance.stellar_oracle_client') as mock_oracle:
+            mock_oracle.get_asset_price = AsyncMock(return_value=0.12)
             
             # Test with invalid threshold (negative)
             rebalance_request = {
