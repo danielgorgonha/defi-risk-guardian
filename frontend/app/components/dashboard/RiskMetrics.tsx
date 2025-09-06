@@ -8,7 +8,6 @@ import {
 } from 'lucide-react'
 import { RiskAnalysis } from '../../utils/api'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
-import { AIRecommendations } from './AIRecommendations'
 
 interface RiskMetricsProps {
   riskAnalysis: RiskAnalysis
@@ -161,8 +160,6 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
         </div>
       </div>
 
-      {/* AI Recommendations */}
-      <AIRecommendations riskAnalysis={riskAnalysis} />
     </div>
   )
 }

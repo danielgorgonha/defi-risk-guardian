@@ -16,7 +16,7 @@ import {
 import { PortfolioCard } from './components/dashboard/PortfolioCard'
 import { RiskMetrics } from './components/dashboard/RiskMetrics'
 import { AlertTimeline } from './components/dashboard/AlertTimeline'
-import { AIStatusDashboard } from './components/dashboard/AIStatusDashboard'
+import { AIDedicatedSection } from './components/dashboard/AIDedicatedSection'
 import { LoadingSpinner } from './components/common/LoadingSpinner'
 import { useToast } from './components/common/ToastProvider'
 import { useNavigation } from './contexts/NavigationContext'
@@ -542,10 +542,10 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {/* AI Status Dashboard - Full Width */}
-              <div className="mb-8">
-                <AIStatusDashboard />
-              </div>
+              {/* AI Dedicated Section - Full Width */}
+              {riskAnalysis && (
+                <AIDedicatedSection riskAnalysis={riskAnalysis} />
+              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Portfolio Overview */}
