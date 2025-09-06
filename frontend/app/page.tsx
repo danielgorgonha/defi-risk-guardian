@@ -20,6 +20,7 @@ import { LoadingSpinner } from './components/common/LoadingSpinner'
 import { useToast } from './components/common/ToastProvider'
 import { useNavigation } from './contexts/NavigationContext'
 import { useWalletStatus } from './hooks/useWalletStatus'
+import { DemoModeBanner } from './components/common/DemoModeBanner'
 import { api, Portfolio, RiskAnalysis, Alert } from './utils/api'
 
 // Mock data for demo
@@ -190,33 +191,6 @@ export default function Home() {
     }
   }
 
-  const handleResetDemo = async () => {
-    try {
-      // Clear demo data from backend if in demo mode
-      if (isDemoMode) {
-        await api.clearDemoData()
-      }
-    } catch (error) {
-      console.warn('Failed to clear demo data:', error)
-      // Continue with reset even if clearing demo data fails
-    }
-    
-    // Clear localStorage first
-    localStorage.removeItem('showNavigation')
-    localStorage.removeItem('isDemoMode')
-    localStorage.removeItem('walletAddress')
-    
-    // Then reset all states
-    setWalletAddress('')
-    setIsDemoMode(false)
-    setShowNavigation(false)
-    setPortfolio(null)
-    setRiskAnalysis(null)
-    setAlerts([])
-    
-    // Show success message
-    toast.showSuccess('Demo Reset', 'Demo data has been cleared successfully!')
-  }
 
   // Load portfolio data when wallet is connected
   useEffect(() => {
@@ -559,25 +533,7 @@ export default function Home() {
       ) : (
         // Dashboard
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {isDemoMode && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-reflector/10 to-reflector/5 border border-reflector/20 rounded-xl">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Star className="h-5 w-5 text-cyan-700" />
-                  <span className="text-cyan-700 font-bold">Demo Mode Active</span>
-                </div>
-                <button
-                  onClick={handleResetDemo}
-                  className="px-4 py-2 text-sm bg-white text-cyan-700 border border-cyan-300 rounded-lg hover:bg-cyan-50 transition-all duration-300 font-medium"
-                >
-                  Reset
-                </button>
-              </div>
-              <p className="text-gray-800 text-sm mt-2 font-medium">
-                You are viewing demo data. Connect a real wallet to use the complete system.
-              </p>
-            </div>
-          )}
+          <DemoModeBanner />
 
           {isLoadingData ? (
             <div className="flex justify-center items-center h-64">

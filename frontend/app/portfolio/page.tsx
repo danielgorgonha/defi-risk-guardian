@@ -7,6 +7,7 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner'
 import { useToast } from '../components/common/ToastProvider'
 import { useNavigation } from '../contexts/NavigationContext'
 import { useWalletStatus } from '../hooks/useWalletStatus'
+import { DemoModeBanner } from '../components/common/DemoModeBanner'
 
 // Mock data - following Portfolio interface
 const mockPortfolio = {
@@ -64,7 +65,7 @@ export default function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const toast = useToast()
-  const { isDemoMode, showNavigation } = useNavigation()
+  const { isDemoMode, showNavigation, setIsDemoMode, setShowNavigation } = useNavigation()
   const { canLoadData } = useWalletStatus()
 
   // Demo wallet address
@@ -142,18 +143,11 @@ export default function PortfolioPage() {
     }
   }
 
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Portfolio Overview</h1>
-          <p className="text-gray-600">Monitor your DeFi investments and performance</p>
-          {isDemoMode && (
-            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-700 font-medium">Demo Mode - Using sample data</p>
-            </div>
-          )}
-        </div>
+        <DemoModeBanner />
 
         {isLoading ? (
           <div className="flex justify-center items-center h-64">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigation } from '../contexts/NavigationContext'
 import { useWalletStatus } from '../hooks/useWalletStatus'
+import { DemoModeBanner } from '../components/common/DemoModeBanner'
 import { 
   User, 
   Bell, 
@@ -63,9 +64,12 @@ export default function SettingsPage() {
     console.log('Settings saved:', settings)
   }
 
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DemoModeBanner />
+        
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
           <p className="text-gray-600">Manage your account preferences and risk management settings</p>
