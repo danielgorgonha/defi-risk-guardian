@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { 
   Shield, 
   Menu, 
@@ -21,6 +21,7 @@ export function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode } = useNavigation()
   const toast = useToast()
 
@@ -76,7 +77,8 @@ export function Header() {
     // Show success message
     toast.showSuccess('Signed Out', 'You have been signed out successfully!')
     
-    // No need to redirect - the state changes will trigger the UI update
+    // Redirect to home page
+    router.push('/')
   }
 
   return (

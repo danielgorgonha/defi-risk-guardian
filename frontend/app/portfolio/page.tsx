@@ -5,6 +5,8 @@ import { PortfolioCard } from '../components/dashboard/PortfolioCard'
 import { api, Portfolio } from '../utils/api'
 import { LoadingSpinner } from '../components/common/LoadingSpinner'
 import { useToast } from '../components/common/ToastProvider'
+import { useNavigation } from '../contexts/NavigationContext'
+import { useWalletStatus } from '../hooks/useWalletStatus'
 
 // Mock data - following Portfolio interface
 const mockPortfolio = {
@@ -61,46 +63,77 @@ export default function PortfolioPage() {
   const [walletAddress, setWalletAddress] = useState('')
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [isDemoMode, setIsDemoMode] = useState(false)
   const toast = useToast()
+  const { isDemoMode, showNavigation } = useNavigation()
+  const { canLoadData } = useWalletStatus()
 
   // Demo wallet address
   const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
+  // Load saved state on mount and sync demo mode
   useEffect(() => {
-    // Check if we have a wallet address from localStorage or URL params
-    const savedWallet = localStorage.getItem('wallet_address')
-    if (savedWallet) {
-      setWalletAddress(savedWallet)
-    } else {
-      // Default to demo mode
-      setWalletAddress(demoWalletAddress)
-      setIsDemoMode(true)
-      setPortfolio(mockPortfolio as Portfolio)
+    const savedWalletAddress = localStorage.getItem('walletAddress')
+    const savedIsDemoMode = localStorage.getItem('isDemoMode')
+    
+    if (savedIsDemoMode === 'true' && savedWalletAddress) {
+      setWalletAddress(savedWalletAddress)
+    } else if (!savedWalletAddress) {
+      // Only set demo wallet if no saved wallet and we're in demo mode
+      if (isDemoMode) {
+        setWalletAddress(demoWalletAddress)
+        setPortfolio(mockPortfolio as Portfolio)
+      }
     }
   }, [])
 
+  // Sync demo mode when it changes
   useEffect(() => {
-    if (walletAddress && !isDemoMode) {
+    if (isDemoMode && !walletAddress) {
+      setWalletAddress(demoWalletAddress)
+      localStorage.setItem('walletAddress', demoWalletAddress)
+    } else if (!isDemoMode && walletAddress) {
+      // Clear wallet address when exiting demo mode
+      setWalletAddress('')
+      setPortfolio(null)
+    }
+  }, [isDemoMode])
+
+  // Load portfolio data when wallet is connected
+  useEffect(() => {
+    if (walletAddress && (isDemoMode || walletAddress.startsWith('GDEMO'))) {
       loadPortfolio()
+    } else if (!walletAddress) {
+      // Clear data when no wallet address
+      setPortfolio(null)
     }
   }, [walletAddress, isDemoMode])
 
   const loadPortfolio = async () => {
     if (!walletAddress) return
     
+    // Don't load data if we can't load data (not in demo mode and no valid wallet)
+    if (!canLoadData) {
+      setPortfolio(null)
+      return
+    }
+    
     setIsLoading(true)
     try {
-      const portfolioData = await api.getPortfolio(walletAddress)
-      setPortfolio(portfolioData)
+      // Only try to load from API if in demo mode
+      if (isDemoMode && walletAddress.startsWith('GDEMO')) {
+        const portfolioData = await api.getPortfolio(walletAddress)
+        setPortfolio(portfolioData)
+      } else {
+        // For non-demo wallets, show message to connect wallet
+        setPortfolio(null)
+        toast.showInfo('Connect Wallet', 'Please connect your wallet to view portfolio data.')
+      }
     } catch (error: any) {
       console.error('Error loading portfolio:', error)
       
-      // If portfolio doesn't exist, show demo data instead
       if (error.response?.status === 404 || error.response?.status === 400) {
         toast.showInfo('Portfolio Not Found', 'Using demo data. Create a portfolio first.')
         setPortfolio(mockPortfolio as Portfolio)
-        setIsDemoMode(true)
       } else {
         toast.showError('Portfolio Error', error.response?.data?.detail || 'Failed to load portfolio')
       }

@@ -19,6 +19,7 @@ import { AlertTimeline } from './components/dashboard/AlertTimeline'
 import { LoadingSpinner } from './components/common/LoadingSpinner'
 import { useToast } from './components/common/ToastProvider'
 import { useNavigation } from './contexts/NavigationContext'
+import { useWalletStatus } from './hooks/useWalletStatus'
 import { api, Portfolio, RiskAnalysis, Alert } from './utils/api'
 
 // Mock data for demo
@@ -103,6 +104,7 @@ export default function Home() {
   const [isLoadingData, setIsLoadingData] = useState(false)
   const toast = useToast()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode } = useNavigation()
+  const { canLoadData, walletAddress: currentWalletAddress } = useWalletStatus()
 
   // Demo data
   const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -114,6 +116,12 @@ export default function Home() {
     
     if (savedIsDemoMode === 'true' && savedWalletAddress) {
       setWalletAddress(savedWalletAddress)
+    } else if (!savedWalletAddress) {
+      // Only set demo wallet if no saved wallet and we're in demo mode
+      if (isDemoMode) {
+        setWalletAddress(demoWalletAddress)
+        localStorage.setItem('walletAddress', demoWalletAddress)
+      }
     }
   }, [])
 
@@ -225,27 +233,27 @@ export default function Home() {
   const loadPortfolioData = async () => {
     if (!walletAddress) return
     
+    // Don't load data if we can't load data (not in demo mode and no valid wallet)
+    if (!canLoadData) {
+      setPortfolio(null)
+      setRiskAnalysis(null)
+      setAlerts([])
+      return
+    }
+    
     setIsLoadingData(true)
     try {
-      // Load portfolio data - only if in demo mode or have valid wallet
-      if (isDemoMode || walletAddress.startsWith('GDEMO')) {
+      // Only load portfolio data if in demo mode
+      if (isDemoMode && walletAddress.startsWith('GDEMO')) {
         const portfolioData = await api.getPortfolio(walletAddress)
         setPortfolio(portfolioData)
       } else {
-        // For non-demo wallets, try to load but handle 404 gracefully
-        try {
-          const portfolioData = await api.getPortfolio(walletAddress)
-          setPortfolio(portfolioData)
-        } catch (error: any) {
-          if (error.response?.status === 404) {
-            // Portfolio doesn't exist, clear the data
-            setPortfolio(null)
-            setRiskAnalysis(null)
-            setAlerts([])
-            return
-          }
-          throw error
-        }
+        // For non-demo wallets, clear data and show message
+        setPortfolio(null)
+        setRiskAnalysis(null)
+        setAlerts([])
+        toast.showInfo('Connect Wallet', 'Please connect your wallet to view portfolio data.')
+        return
       }
       
       // Load risk analysis - use demo endpoint if in demo mode

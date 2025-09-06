@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigation } from '../contexts/NavigationContext'
+import { useWalletStatus } from '../hooks/useWalletStatus'
 import { 
   User, 
   Bell, 
@@ -15,6 +17,8 @@ import {
 } from 'lucide-react'
 
 export default function SettingsPage() {
+  const { isDemoMode, showNavigation } = useNavigation()
+  const { canLoadData } = useWalletStatus()
   const [settings, setSettings] = useState({
     // User Preferences
     notifications: {
@@ -47,6 +51,13 @@ export default function SettingsPage() {
 
   const [showAdvanced, setShowAdvanced] = useState(false)
 
+  // Show message when can't load data
+  useEffect(() => {
+    if (!canLoadData) {
+      // Could add a toast or redirect logic here if needed
+    }
+  }, [canLoadData])
+
   const handleSave = () => {
     // TODO: Implement save functionality
     console.log('Settings saved:', settings)
@@ -59,6 +70,15 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
           <p className="text-gray-600">Manage your account preferences and risk management settings</p>
         </div>
+
+        {!canLoadData ? (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+            <div className="text-center text-gray-500">
+              <p className="text-lg">Settings not available</p>
+              <p className="text-sm mt-2">Connect your wallet or try the demo to access settings</p>
+            </div>
+          </div>
+        ) : (
 
         <div className="space-y-8">
           {/* User Profile */}
@@ -279,6 +299,7 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
+        )}
       </div>
     </div>
   )

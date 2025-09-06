@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AlertTimeline } from '../components/dashboard/AlertTimeline'
+import { useNavigation } from '../contexts/NavigationContext'
+import { useWalletStatus } from '../hooks/useWalletStatus'
 
 // Mock data - following Alert interface
 const mockAlerts = [
@@ -41,6 +43,18 @@ const mockAlerts = [
 
 export default function AlertsPage() {
   const [filter, setFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all')
+  const [alerts, setAlerts] = useState(mockAlerts)
+  const { isDemoMode, showNavigation } = useNavigation()
+  const { canLoadData } = useWalletStatus()
+
+  // Clear alerts when exiting demo mode or when can't load data
+  useEffect(() => {
+    if (!canLoadData) {
+      setAlerts([])
+    } else {
+      setAlerts(mockAlerts)
+    }
+  }, [canLoadData])
 
   return (
     <div className="min-h-screen bg-white">
@@ -53,7 +67,16 @@ export default function AlertsPage() {
         <div className="grid grid-cols-1 gap-8">
           {/* Alerts Timeline */}
           <div>
-            <AlertTimeline alerts={mockAlerts} />
+            {alerts.length > 0 ? (
+              <AlertTimeline alerts={alerts} />
+            ) : (
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                <div className="text-center text-gray-500">
+                  <p className="text-lg">No alerts available</p>
+                  <p className="text-sm mt-2">Connect your wallet or try the demo to see risk alerts</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
