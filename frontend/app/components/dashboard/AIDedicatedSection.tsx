@@ -182,11 +182,11 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
   const displayedRecommendations = showAllInsights ? enhancedRecommendations : enhancedRecommendations.slice(0, 2)
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-2xl shadow-2xl border border-purple-500/20 p-6 text-white mb-8">
+    <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 rounded-2xl shadow-2xl border border-blue-500/20 p-6 text-white mb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg">
+          <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl shadow-lg">
             <Brain className="h-6 w-6 text-white" />
           </div>
           <div>
@@ -194,7 +194,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
               AI Risk Guardian
               <Sparkles className="h-5 w-5 ml-2 text-yellow-400" />
             </h3>
-            <p className="text-sm text-purple-200">Advanced DeFi Risk Analysis Engine</p>
+            <p className="text-sm text-blue-200">Advanced DeFi Risk Analysis Engine</p>
           </div>
         </div>
         <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center space-x-1 ${getStatusColor(aiStatus.status)}`}>
@@ -245,11 +245,11 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
 
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
           <div className="flex items-center justify-between mb-2">
-            <Zap className="h-5 w-5 text-cyan-400" />
+            <Zap className="h-5 w-5 text-blue-400" />
             <span className="text-xs text-gray-300">Confidence</span>
           </div>
           <div className="text-2xl font-bold text-white">{aiStatus.confidence.toFixed(1)}%</div>
-          <div className="text-xs text-cyan-400">Real-time</div>
+          <div className="text-xs text-blue-400">Real-time</div>
         </div>
       </div>
 
@@ -259,12 +259,12 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
         <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-lg font-bold text-white flex items-center">
-              <Brain className="h-5 w-5 mr-2 text-purple-400" />
+              <Brain className="h-5 w-5 mr-2 text-blue-400" />
               Smart Recommendations
             </h4>
             <button
               onClick={() => setShowAllInsights(!showAllInsights)}
-              className="text-sm text-purple-400 hover:text-purple-300 font-medium flex items-center"
+              className="text-sm text-blue-400 hover:text-blue-300 font-medium flex items-center"
             >
               {showAllInsights ? 'Show Less' : 'Show All'}
               <ArrowRight className={`h-4 w-4 ml-1 transition-transform ${showAllInsights ? 'rotate-180' : ''}`} />
@@ -291,7 +291,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(rec.priority)}`}>
                           {rec.priority.toUpperCase()}
                         </span>
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
                           {rec.confidence}%
                         </span>
                       </div>
@@ -306,7 +306,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
                           {rec.timeToImplement}
                         </div>
                         {rec.estimatedReturn && (
-                          <div className="flex items-center text-purple-400">
+                          <div className="flex items-center text-blue-400">
                             <DollarSign className="h-3 w-3 mr-1" />
                             {rec.estimatedReturn}
                           </div>
@@ -318,12 +318,12 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
 
                 {/* Expanded AI Insight */}
                 {selectedRecommendation === rec.id && (
-                  <div className="mt-3 p-3 bg-gradient-to-r from-purple-50/20 to-indigo-50/20 rounded-lg border border-purple-200/20">
+                  <div className="mt-3 p-3 bg-gradient-to-r from-blue-50/20 to-cyan-50/20 rounded-lg border border-blue-200/20">
                     <div className="flex items-start space-x-2">
-                      <Brain className="h-4 w-4 text-purple-400 mt-0.5 flex-shrink-0" />
+                      <Brain className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h6 className="text-sm font-bold text-purple-200 mb-1">AI Insight</h6>
-                        <p className="text-xs text-purple-100 leading-relaxed">{rec.aiInsight}</p>
+                        <h6 className="text-sm font-bold text-blue-200 mb-1">AI Insight</h6>
+                        <p className="text-xs text-blue-100 leading-relaxed">{rec.aiInsight}</p>
                       </div>
                     </div>
                   </div>
@@ -336,7 +336,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
         {/* AI Analytics & Future Recharts Space */}
         <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
           <h4 className="text-lg font-bold text-white mb-4 flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2 text-cyan-400" />
+            <BarChart3 className="h-5 w-5 mr-2 text-blue-400" />
             AI Analytics
           </h4>
           
@@ -393,14 +393,14 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
       <div className="mt-6 bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
         <div className="flex items-center justify-between mb-3">
           <h4 className="text-sm font-bold text-white flex items-center">
-            <TrendingUp className="h-4 w-4 mr-2 text-green-400" />
+            <TrendingUp className="h-4 w-4 mr-2 text-blue-400" />
             AI Confidence Level
           </h4>
           <span className="text-lg font-bold text-white">{aiStatus.confidence.toFixed(1)}%</span>
         </div>
         <div className="w-full bg-gray-700 rounded-full h-3">
           <div 
-            className="bg-gradient-to-r from-green-500 to-blue-500 h-3 rounded-full transition-all duration-1000"
+            className="bg-gradient-to-r from-blue-500 to-cyan-500 h-3 rounded-full transition-all duration-1000"
             style={{ width: `${aiStatus.confidence}%` }}
           />
         </div>
