@@ -107,6 +107,27 @@ export default function Home() {
   // Demo data
   const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
+  // Load saved state on mount and sync demo mode
+  useEffect(() => {
+    const savedWalletAddress = localStorage.getItem('walletAddress')
+    const savedIsDemoMode = localStorage.getItem('isDemoMode')
+    
+    if (savedIsDemoMode === 'true' && savedWalletAddress) {
+      setWalletAddress(savedWalletAddress)
+    }
+  }, [])
+
+  // Sync demo mode when it changes
+  useEffect(() => {
+    if (isDemoMode && !walletAddress) {
+      setWalletAddress(demoWalletAddress)
+      localStorage.setItem('walletAddress', demoWalletAddress)
+    } else if (!isDemoMode && walletAddress) {
+      // Clear wallet address when exiting demo mode
+      setWalletAddress('')
+    }
+  }, [isDemoMode])
+
   const handleWalletSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!walletAddress.trim()) {
@@ -134,6 +155,7 @@ export default function Home() {
       await api.createDemoPortfolio()
       
       setWalletAddress(demoWalletAddress)
+      localStorage.setItem('walletAddress', demoWalletAddress)
       setIsDemoMode(true) // Enable demo mode
       setShowNavigation(true) // Show navigation menus
       toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully! Loading data...')
@@ -148,6 +170,7 @@ export default function Home() {
       
       // Fallback to mock data if backend fails
       setWalletAddress(demoWalletAddress)
+      localStorage.setItem('walletAddress', demoWalletAddress)
       setIsDemoMode(true)
       setShowNavigation(true) // Show navigation even with mock data
       setPortfolio(mockPortfolio as Portfolio)
@@ -159,10 +182,43 @@ export default function Home() {
     }
   }
 
+  const handleResetDemo = async () => {
+    try {
+      // Clear demo data from backend if in demo mode
+      if (isDemoMode) {
+        await api.clearDemoData()
+      }
+    } catch (error) {
+      console.warn('Failed to clear demo data:', error)
+      // Continue with reset even if clearing demo data fails
+    }
+    
+    // Clear localStorage first
+    localStorage.removeItem('showNavigation')
+    localStorage.removeItem('isDemoMode')
+    localStorage.removeItem('walletAddress')
+    
+    // Then reset all states
+    setWalletAddress('')
+    setIsDemoMode(false)
+    setShowNavigation(false)
+    setPortfolio(null)
+    setRiskAnalysis(null)
+    setAlerts([])
+    
+    // Show success message
+    toast.showSuccess('Demo Reset', 'Demo data has been cleared successfully!')
+  }
+
   // Load portfolio data when wallet is connected
   useEffect(() => {
-    if (walletAddress) {
+    if (walletAddress && (isDemoMode || walletAddress.startsWith('GDEMO'))) {
       loadPortfolioData()
+    } else if (!walletAddress) {
+      // Clear data when no wallet address
+      setPortfolio(null)
+      setRiskAnalysis(null)
+      setAlerts([])
     }
   }, [walletAddress, isDemoMode])
 
@@ -171,9 +227,26 @@ export default function Home() {
     
     setIsLoadingData(true)
     try {
-      // Load portfolio data
-      const portfolioData = await api.getPortfolio(walletAddress)
-      setPortfolio(portfolioData)
+      // Load portfolio data - only if in demo mode or have valid wallet
+      if (isDemoMode || walletAddress.startsWith('GDEMO')) {
+        const portfolioData = await api.getPortfolio(walletAddress)
+        setPortfolio(portfolioData)
+      } else {
+        // For non-demo wallets, try to load but handle 404 gracefully
+        try {
+          const portfolioData = await api.getPortfolio(walletAddress)
+          setPortfolio(portfolioData)
+        } catch (error: any) {
+          if (error.response?.status === 404) {
+            // Portfolio doesn't exist, clear the data
+            setPortfolio(null)
+            setRiskAnalysis(null)
+            setAlerts([])
+            return
+          }
+          throw error
+        }
+      }
       
       // Load risk analysis - use demo endpoint if in demo mode
       try {
@@ -486,10 +559,7 @@ export default function Home() {
                   <span className="text-cyan-700 font-bold">Demo Mode Active</span>
                 </div>
                 <button
-                  onClick={() => {
-                    setWalletAddress('')
-                    setIsDemoMode(false)
-                  }}
+                  onClick={handleResetDemo}
                   className="px-4 py-2 text-sm bg-white text-cyan-700 border border-cyan-300 rounded-lg hover:bg-cyan-50 transition-all duration-300 font-medium"
                 >
                   Reset

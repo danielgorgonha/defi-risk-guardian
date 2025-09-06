@@ -44,14 +44,39 @@ export function Header() {
       setShowNavigation(true)
       toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully!')
       
-      // Redirect to dashboard
-      window.location.href = '/'
+      // No need to redirect - the state changes will trigger the UI update
     } catch (error: any) {
       console.error('Error creating demo portfolio:', error)
       toast.showError('Demo Error', error.response?.data?.detail || 'Failed to create demo portfolio')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSignOut = async () => {
+    try {
+      // Clear demo data from backend if in demo mode
+      if (isDemoMode) {
+        await api.clearDemoData()
+      }
+    } catch (error) {
+      console.warn('Failed to clear demo data:', error)
+      // Continue with sign out even if clearing demo data fails
+    }
+    
+    // Clear localStorage first
+    localStorage.removeItem('showNavigation')
+    localStorage.removeItem('isDemoMode')
+    localStorage.removeItem('walletAddress')
+    
+    // Then reset all states
+    setIsDemoMode(false)
+    setShowNavigation(false)
+    
+    // Show success message
+    toast.showSuccess('Signed Out', 'You have been signed out successfully!')
+    
+    // No need to redirect - the state changes will trigger the UI update
   }
 
   return (
@@ -128,16 +153,16 @@ export function Header() {
                         <Settings className="h-4 w-4 mr-3" />
                         Settings
                       </Link>
-                      <button
-                        onClick={() => {
-                          setIsProfileOpen(false)
-                          // Handle logout
-                        }}
-                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors duration-200"
-                      >
-                        <LogOut className="h-4 w-4 mr-3" />
-                        Sign out
-                      </button>
+                              <button
+                                onClick={() => {
+                                  setIsProfileOpen(false)
+                                  handleSignOut()
+                                }}
+                                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors duration-200"
+                              >
+                                <LogOut className="h-4 w-4 mr-3" />
+                                Sign out
+                              </button>
                     </div>
                   )}
                 </div>
