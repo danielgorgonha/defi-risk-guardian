@@ -13,7 +13,7 @@ from sqlalchemy import text
 from dotenv import load_dotenv
 
 from app.core.config import settings
-from app.api.v1 import portfolio, risk, alerts, rebalance
+from app.api.v1 import portfolio, risk, alerts, rebalance, demo
 from app.core.database import engine, Base
 from app.services.stellar_oracle import StellarOracleClient
 from app.services.cache import cache_service
@@ -47,6 +47,7 @@ app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["portfoli
 app.include_router(risk.router, prefix="/api/v1/risk", tags=["risk"])
 app.include_router(alerts.router, prefix="/api/v1/alerts", tags=["alerts"])
 app.include_router(rebalance.router, prefix="/api/v1/rebalance", tags=["rebalance"])
+app.include_router(demo.router, prefix="/api/v1/demo", tags=["demo"])
 
 @app.get("/")
 async def root():

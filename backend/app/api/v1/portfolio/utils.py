@@ -9,6 +9,23 @@ from stellar_sdk import Server
 from app.core.config import settings
 
 
+def get_mock_price(asset_code: str) -> float:
+    """Get mock price for demo purposes when real prices are not available"""
+    mock_prices = {
+        'XLM': 0.12,
+        'USDC': 1.0,
+        'BTC': 45000.0,
+        'ETH': 3000.0,
+        'ADA': 0.45,
+        'DOT': 6.5,
+        'LINK': 14.2,
+        'UNI': 8.7,
+        'AAVE': 95.0,
+        'COMP': 45.0
+    }
+    return mock_prices.get(asset_code.upper(), 1.0)  # Default to $1 if not found
+
+
 async def discover_wallet_assets(wallet_address: str) -> List[Dict[str, Any]]:
     """Discover assets in a Stellar wallet using Horizon API"""
     try:
@@ -76,7 +93,7 @@ def calculate_simple_risk_score(assets: List[Dict[str, Any]]) -> float:
 def format_asset_data(asset, price_usd: float = 0.0) -> Dict[str, Any]:
     """Format asset data for API response"""
     return {
-        "asset_id": asset.id,
+        "id": asset.id,
         "asset_code": asset.asset_code,
         "asset_issuer": asset.asset_issuer,
         "balance": asset.balance,
@@ -84,9 +101,9 @@ def format_asset_data(asset, price_usd: float = 0.0) -> Dict[str, Any]:
         "current_allocation": 0.0,  # Will be calculated
         "value_usd": asset.balance * price_usd,
         "price_usd": price_usd,
-        "status": asset.status,
-        "notes": asset.notes,
-        "target_date": asset.target_date.isoformat() if asset.target_date else None,
-        "created_at": asset.created_at.isoformat() if asset.created_at else None,
-        "updated_at": asset.updated_at.isoformat() if asset.updated_at else None
+        "status": getattr(asset, 'status', 'owned'),
+        "notes": getattr(asset, 'notes', None),
+        "target_date": asset.target_date.isoformat() if hasattr(asset, 'target_date') and asset.target_date else None,
+        "created_at": asset.created_at.isoformat() if hasattr(asset, 'created_at') and asset.created_at else None,
+        "updated_at": asset.updated_at.isoformat() if hasattr(asset, 'updated_at') and asset.updated_at else None
     }

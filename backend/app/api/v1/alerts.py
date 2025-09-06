@@ -248,7 +248,8 @@ async def create_sample_alerts(wallet_address: str, db: Session):
                 user_id=user.id,
                 alert_type=alert_data["alert_type"],
                 severity=alert_data["severity"],
-                message=alert_data["message"]
+                message=alert_data["message"],
+                triggered_at=datetime.utcnow() - timedelta(hours=1, minutes=30)
             )
             db.add(alert)
         

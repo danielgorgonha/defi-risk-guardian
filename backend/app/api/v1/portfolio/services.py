@@ -11,7 +11,7 @@ from app.models.database import User, Portfolio, PriceHistory
 from app.services.stellar_oracle import stellar_oracle_client
 from .models import PortfolioCreate, AssetCreate, AssetUpdate, SyncRequest
 from .validators import validate_stellar_address, validate_asset_exists
-from .utils import discover_wallet_assets, calculate_simple_risk_score, format_asset_data
+from .utils import discover_wallet_assets, calculate_simple_risk_score, format_asset_data, get_mock_price
 from datetime import datetime
 
 
@@ -121,8 +121,11 @@ class PortfolioService:
                 price_usd = await stellar_oracle_client.get_asset_price(
                     asset.asset_code, asset.asset_issuer
                 )
+                # If price is 0 or None, use mock prices for demo
+                if price_usd is None or price_usd == 0.0:
+                    price_usd = get_mock_price(asset.asset_code)
             except Exception:
-                price_usd = 0.0
+                price_usd = get_mock_price(asset.asset_code)
             
             asset_data = format_asset_data(asset, price_usd)
             assets_data.append(asset_data)
@@ -144,7 +147,7 @@ class PortfolioService:
             "user_id": str(user.id),
             "wallet_address": user.wallet_address,
             "risk_tolerance": user.risk_tolerance,
-            "total_value_usd": total_value,
+            "total_value": total_value,
             "risk_score": risk_score,
             "assets": assets_data,
             "timestamp": datetime.utcnow().isoformat() + "Z"
