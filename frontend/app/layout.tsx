@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Header } from './components/common/Header'
 import { ToastProvider } from './components/common/ToastProvider'
+import { NavigationProvider } from './contexts/NavigationContext'
 
 export const metadata: Metadata = {
   title: 'Risk Guardian',
@@ -19,10 +20,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased" suppressHydrationWarning={true}>
-        <ToastProvider>
-          <Header />
-          {children}
-        </ToastProvider>
+        <NavigationProvider>
+          <ToastProvider>
+            <Header />
+            {children}
+          </ToastProvider>
+        </NavigationProvider>
       </body>
     </html>
   )

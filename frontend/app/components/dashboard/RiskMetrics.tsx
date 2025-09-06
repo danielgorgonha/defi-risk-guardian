@@ -47,7 +47,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       description: 'Maximum expected loss in 95% of scenarios',
       icon: TrendingDown,
       color: 'text-red-700 bg-red-100',
-      hoverGlow: 'hover:shadow-glow-red'
+      hoverGlow: 'hover:shadow-lg hover:shadow-red-200'
     },
     {
       title: 'Volatility',
@@ -55,7 +55,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       description: 'Annual portfolio volatility',
       icon: Activity,
       color: 'text-yellow-700 bg-yellow-100',
-      hoverGlow: 'hover:shadow-glow-yellow'
+      hoverGlow: 'hover:shadow-lg hover:shadow-yellow-200'
     },
     {
       title: 'Sharpe Ratio',
@@ -63,7 +63,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       description: 'Risk-adjusted return',
       icon: BarChart3,
       color: sharpe_ratio > 1 ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100',
-      hoverGlow: sharpe_ratio > 1 ? 'hover:shadow-glow-green' : 'hover:shadow-glow-red'
+      hoverGlow: sharpe_ratio > 1 ? 'hover:shadow-lg hover:shadow-green-200' : 'hover:shadow-lg hover:shadow-red-200'
     },
     {
       title: 'Beta',
@@ -71,7 +71,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       description: 'Market correlation (XLM)',
       icon: Target,
       color: beta > 1 ? 'text-yellow-700 bg-yellow-100' : 'text-blue-700 bg-blue-100',
-      hoverGlow: beta > 1 ? 'hover:shadow-glow-yellow' : 'hover:shadow-glow-stellar'
+      hoverGlow: beta > 1 ? 'hover:shadow-lg hover:shadow-yellow-200' : 'hover:shadow-lg hover:shadow-blue-200'
     }
   ]
 
@@ -81,7 +81,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-300">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-black flex items-center">
-            <Shield className="h-6 w-6 mr-3 text-stellar" />
+            <Shield className="h-6 w-6 mr-3 text-blue-600" />
             Risk Score
           </h3>
           <div className={`px-4 py-2 rounded-xl text-sm font-medium border ${getRiskColor(risk_score)}`}>
@@ -103,9 +103,9 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
           <div className="w-full bg-gray-200 rounded-full h-3">
             <div 
               className={`h-3 rounded-full transition-all duration-500 ${
-                risk_score < 30 ? 'bg-risk-green' :
-                risk_score < 60 ? 'bg-risk-yellow' :
-                risk_score < 80 ? 'bg-risk-red' : 'bg-risk-red'
+                risk_score < 30 ? 'bg-green-500' :
+                risk_score < 60 ? 'bg-yellow-500' :
+                risk_score < 80 ? 'bg-red-500' : 'bg-red-600'
               }`}
               style={{ width: `${Math.min(risk_score, 100)}%` }}
             />
@@ -162,16 +162,29 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
 
       {/* Recommendations */}
       {recommendations && recommendations.length > 0 && (
-        <div className="bg-gradient-to-br from-reflector/10 to-reflector/5 rounded-2xl shadow-lg border border-reflector/20 p-6 hover:shadow-glow-reflector transition-all duration-300">
+        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-2xl shadow-lg border border-cyan-200 p-6 hover:shadow-lg hover:shadow-cyan-200 transition-all duration-300">
           <h4 className="text-lg font-bold text-black mb-4 flex items-center">
-            <AlertTriangle className="h-5 w-5 mr-3 text-reflector" />
+            <AlertTriangle className="h-5 w-5 mr-3 text-cyan-600" />
             AI Recommendations
           </h4>
           <div className="space-y-3">
             {recommendations.map((recommendation, index) => (
               <div key={index} className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-reflector rounded-full mt-2 flex-shrink-0" />
-                <p className="text-sm text-gray-800 leading-relaxed font-medium">{recommendation}</p>
+                <div className="w-2 h-2 bg-cyan-500 rounded-full mt-2 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm text-gray-800 leading-relaxed font-medium">
+                    {typeof recommendation === 'string' 
+                      ? recommendation 
+                      : (recommendation as any).title || (recommendation as any).description || 'Recommendation'
+                    }
+                  </p>
+                  {typeof recommendation === 'object' && (recommendation as any).description && (recommendation as any).title && (
+                    <p className="text-xs text-gray-600 mt-1">{(recommendation as any).description}</p>
+                  )}
+                  {typeof recommendation === 'object' && (recommendation as any).impact && (
+                    <p className="text-xs text-cyan-600 mt-1 font-medium">{(recommendation as any).impact}</p>
+                  )}
+                </div>
               </div>
             ))}
           </div>

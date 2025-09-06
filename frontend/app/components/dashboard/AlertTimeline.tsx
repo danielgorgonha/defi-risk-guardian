@@ -32,7 +32,8 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
     return statusMatch && severityMatch
   })
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = (severity: string | undefined) => {
+    if (!severity) return 'text-gray-600 bg-gray-100'
     switch (severity.toLowerCase()) {
       case 'low':
         return 'text-blue-600 bg-blue-100'
@@ -47,7 +48,8 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
     }
   }
 
-  const getSeverityIcon = (severity: string) => {
+  const getSeverityIcon = (severity: string | undefined) => {
+    if (!severity) return '📢'
     switch (severity.toLowerCase()) {
       case 'low':
         return 'ℹ️'
@@ -62,7 +64,8 @@ export function AlertTimeline({ alerts }: AlertTimelineProps) {
     }
   }
 
-  const getAlertTypeIcon = (type: string) => {
+  const getAlertTypeIcon = (type: string | undefined) => {
+    if (!type) return '📢'
     switch (type.toLowerCase()) {
       case 'volatility':
         return '📈'
@@ -173,7 +176,8 @@ interface AlertItemProps {
 }
 
 function AlertItem({ alert }: AlertItemProps) {
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = (severity: string | undefined) => {
+    if (!severity) return 'text-gray-600 bg-gray-100'
     switch (severity.toLowerCase()) {
       case 'low':
         return 'text-blue-600 bg-blue-100'
@@ -188,7 +192,8 @@ function AlertItem({ alert }: AlertItemProps) {
     }
   }
 
-  const getSeverityIcon = (severity: string) => {
+  const getSeverityIcon = (severity: string | undefined) => {
+    if (!severity) return '📢'
     switch (severity.toLowerCase()) {
       case 'low':
         return 'ℹ️'
@@ -203,7 +208,8 @@ function AlertItem({ alert }: AlertItemProps) {
     }
   }
 
-  const getAlertTypeIcon = (type: string) => {
+  const getAlertTypeIcon = (type: string | undefined) => {
+    if (!type) return '📢'
     switch (type.toLowerCase()) {
       case 'volatility':
         return '📈'
@@ -233,10 +239,10 @@ function AlertItem({ alert }: AlertItemProps) {
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-1">
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSeverityColor(alert.severity)}`}>
-                {getSeverityIcon(alert.severity)} {alert.severity}
+                {getSeverityIcon(alert.severity)} {alert.severity || 'Unknown'}
               </span>
               <span className="text-xs text-gray-500 uppercase tracking-wide">
-                {alert.alert_type}
+                {alert.alert_type || 'Unknown'}
               </span>
             </div>
             
@@ -248,10 +254,12 @@ function AlertItem({ alert }: AlertItemProps) {
               <div className="flex items-center space-x-1">
                 <Clock className="h-3 w-3" />
                 <span>
-                  {formatDistanceToNow(new Date(alert.triggered_at), { 
-                    addSuffix: true, 
-                    locale: enUS 
-                  })}
+                  {alert.triggered_at && !isNaN(new Date(alert.triggered_at).getTime()) 
+                    ? formatDistanceToNow(new Date(alert.triggered_at), { 
+                        addSuffix: true, 
+                        locale: enUS 
+                      }) 
+                    : 'Unknown time'}
                 </span>
               </div>
               

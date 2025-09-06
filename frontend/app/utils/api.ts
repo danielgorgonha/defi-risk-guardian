@@ -75,7 +75,13 @@ export interface RiskAnalysis {
   beta: number
   max_drawdown: number
   risk_score: number
-  recommendations: string[]
+  recommendations: (string | {
+    type: string
+    priority: string
+    title: string
+    description: string
+    impact: string
+  })[]
 }
 
 export interface Alert {
@@ -217,6 +223,32 @@ export const api = {
   // Health check
   healthCheck: async () => {
     const response = await apiClient.get('/health')
+    return response.data
+  },
+
+  // Demo endpoints
+  createDemoPortfolio: async () => {
+    const response = await apiClient.post('/api/v1/demo/portfolio')
+    return response.data
+  },
+
+  clearDemoData: async () => {
+    const response = await apiClient.delete('/api/v1/demo/portfolio')
+    return response.data
+  },
+
+  getDemoStatus: async () => {
+    const response = await apiClient.get('/api/v1/demo/status')
+    return response.data
+  },
+
+  getDemoRiskAnalysis: async () => {
+    const response = await apiClient.get('/api/v1/demo/risk')
+    return response.data
+  },
+
+  getDemoAlerts: async () => {
+    const response = await apiClient.get('/api/v1/demo/alerts')
     return response.data
   }
 }

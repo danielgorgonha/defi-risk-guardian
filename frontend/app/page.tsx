@@ -18,6 +18,8 @@ import { RiskMetrics } from './components/dashboard/RiskMetrics'
 import { AlertTimeline } from './components/dashboard/AlertTimeline'
 import { LoadingSpinner } from './components/common/LoadingSpinner'
 import { useToast } from './components/common/ToastProvider'
+import { useNavigation } from './contexts/NavigationContext'
+import { api, Portfolio, RiskAnalysis, Alert } from './utils/api'
 
 // Mock data for demo
 const mockPortfolio = {
@@ -94,9 +96,13 @@ const mockAlerts = [
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = useState('')
-  const [isDemoMode, setIsDemoMode] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
+  const [riskAnalysis, setRiskAnalysis] = useState<RiskAnalysis | null>(null)
+  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [isLoadingData, setIsLoadingData] = useState(false)
   const toast = useToast()
+  const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode } = useNavigation()
 
   // Demo data
   const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -109,17 +115,105 @@ export default function Home() {
     }
     
     setIsLoading(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      // Create user/portfolio via API
+      await api.createUser(walletAddress)
       toast.showSuccess('Wallet Connected', 'Your Stellar wallet has been connected successfully!')
-    }, 1000)
+    } catch (error: any) {
+      console.error('Error connecting wallet:', error)
+      toast.showError('Connection Error', error.response?.data?.detail || 'Failed to connect wallet')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleDemoMode = () => {
-    setWalletAddress(demoWalletAddress)
-    setIsDemoMode(true)
-    toast.showInfo('Demo Mode Activated', 'You are now viewing demo data. Connect a real wallet for live data.')
+  const handleDemoMode = async () => {
+    setIsLoading(true)
+    try {
+      // Create demo portfolio in backend
+      await api.createDemoPortfolio()
+      
+      setWalletAddress(demoWalletAddress)
+      setIsDemoMode(true) // Enable demo mode
+      setShowNavigation(true) // Show navigation menus
+      toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully! Loading data...')
+      
+      // Wait a bit for state to update, then load the demo data from backend
+      setTimeout(async () => {
+        await loadPortfolioData()
+      }, 100)
+      
+    } catch (error: any) {
+      console.error('Error creating demo portfolio:', error)
+      
+      // Fallback to mock data if backend fails
+      setWalletAddress(demoWalletAddress)
+      setIsDemoMode(true)
+      setShowNavigation(true) // Show navigation even with mock data
+      setPortfolio(mockPortfolio as Portfolio)
+      setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
+      setAlerts(mockAlerts as Alert[])
+      toast.showInfo('Demo Mode (Offline)', 'Using offline demo data. Backend demo creation failed.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Load portfolio data when wallet is connected
+  useEffect(() => {
+    if (walletAddress) {
+      loadPortfolioData()
+    }
+  }, [walletAddress, isDemoMode])
+
+  const loadPortfolioData = async () => {
+    if (!walletAddress) return
+    
+    setIsLoadingData(true)
+    try {
+      // Load portfolio data
+      const portfolioData = await api.getPortfolio(walletAddress)
+      setPortfolio(portfolioData)
+      
+      // Load risk analysis - use demo endpoint if in demo mode
+      try {
+        const riskData = isDemoMode 
+          ? await api.getDemoRiskAnalysis()
+          : await api.analyzeRisk(walletAddress)
+        setRiskAnalysis(riskData)
+      } catch (riskError) {
+        console.warn('Risk analysis failed:', riskError)
+        // Use mock data for risk analysis if API fails
+        setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
+      }
+      
+      // Load alerts - use demo endpoint if in demo mode
+      try {
+        const alertsData = isDemoMode 
+          ? await api.getDemoAlerts()
+          : await api.getActiveAlerts(walletAddress)
+        setAlerts(alertsData.alerts || alertsData)
+      } catch (alertError) {
+        console.warn('Alerts loading failed:', alertError)
+        // Use mock data for alerts if API fails
+        setAlerts(mockAlerts as Alert[])
+      }
+      
+    } catch (error: any) {
+      console.error('Error loading portfolio data:', error)
+      
+      // If portfolio doesn't exist, show demo data instead
+      if (error.response?.status === 404 || error.response?.status === 400) {
+        toast.showInfo('Portfolio Not Found', 'Using demo data. Create a portfolio first.')
+        setPortfolio(mockPortfolio as Portfolio)
+        setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
+        setAlerts(mockAlerts as Alert[])
+      } else {
+        toast.showError('Data Loading Error', error.response?.data?.detail || 'Failed to load portfolio data')
+      }
+    } finally {
+      setIsLoadingData(false)
+    }
   }
 
   const features = [
@@ -445,22 +539,46 @@ export default function Home() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Portfolio Overview */}
-            <div className="lg:col-span-2">
-              <PortfolioCard portfolio={mockPortfolio} />
+          {isLoadingData ? (
+            <div className="flex justify-center items-center h-64">
+              <LoadingSpinner />
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Portfolio Overview */}
+                <div className="lg:col-span-2">
+                  {portfolio ? (
+                    <PortfolioCard portfolio={portfolio} onAssetAdded={loadPortfolioData} />
+                  ) : (
+                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                      <div className="text-center text-gray-500">
+                        <p>No portfolio data available</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-            {/* Risk Metrics */}
-            <div>
-              <RiskMetrics riskAnalysis={mockRiskAnalysis} />
-            </div>
-          </div>
+                {/* Risk Metrics */}
+                <div>
+                  {riskAnalysis ? (
+                    <RiskMetrics riskAnalysis={riskAnalysis} />
+                  ) : (
+                    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                      <div className="text-center text-gray-500">
+                        <p>No risk analysis available</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-          {/* Alerts */}
-          <div className="mt-8">
-            <AlertTimeline alerts={mockAlerts} />
-          </div>
+              {/* Alerts */}
+              <div className="mt-8">
+                <AlertTimeline alerts={alerts} />
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

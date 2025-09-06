@@ -11,13 +11,16 @@ import {
 } from 'lucide-react'
 import { Portfolio, Asset } from '../../utils/api'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
+import { AddAssetModal } from '../portfolio/AddAssetModal'
 
 interface PortfolioCardProps {
   portfolio: Portfolio
+  onAssetAdded?: () => void
 }
 
-export function PortfolioCard({ portfolio }: PortfolioCardProps) {
+export function PortfolioCard({ portfolio, onAssetAdded }: PortfolioCardProps) {
   const [showAllAssets, setShowAllAssets] = useState(false)
+  const [showAddAssetModal, setShowAddAssetModal] = useState(false)
 
   const totalValue = portfolio.total_value
   const riskScore = portfolio.risk_score
@@ -50,10 +53,14 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <button className="p-3 text-gray-600 hover:text-stellar hover:bg-stellar/10 rounded-xl transition-all duration-300 border border-gray-300 hover:border-stellar/30">
+          <button 
+            onClick={() => setShowAddAssetModal(true)}
+            className="p-3 text-gray-600 hover:text-stellar hover:bg-stellar/10 rounded-xl transition-all duration-300 border border-gray-300 hover:border-stellar/30"
+            title="Add Asset"
+          >
             <Plus className="h-5 w-5" />
           </button>
-          <button className="p-3 text-gray-600 hover:text-stellar hover:bg-stellar/10 rounded-xl transition-all duration-300 border border-gray-300 hover:border-stellar/30">
+          <button className="p-3 text-gray-600 hover:text-stellar hover:bg-stellar/10 rounded-xl transition-all duration-300 border border-gray-300 hover:border-stellar/30" title="Settings">
             <Settings className="h-5 w-5" />
           </button>
         </div>
@@ -141,6 +148,17 @@ export function PortfolioCard({ portfolio }: PortfolioCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Add Asset Modal */}
+      <AddAssetModal
+        isOpen={showAddAssetModal}
+        onClose={() => setShowAddAssetModal(false)}
+        walletAddress={portfolio.wallet_address}
+        onAssetAdded={() => {
+          onAssetAdded?.()
+          setShowAddAssetModal(false)
+        }}
+      />
     </div>
   )
 }
