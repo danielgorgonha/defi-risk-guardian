@@ -19,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased" suppressHydrationWarning={true}>
+      <body className="antialiased pt-16" suppressHydrationWarning={true}>
         <NavigationProvider>
           <ToastProvider>
             <Header />
