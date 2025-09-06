@@ -1,20 +1,19 @@
 'use client'
 
 import { useNavigation } from '../contexts/NavigationContext'
+import { useWallet } from '../contexts/WalletContext'
 
 export function useWalletStatus() {
   const { isDemoMode } = useNavigation()
+  const { wallet } = useWallet()
   
   const isWalletConnected = () => {
-    if (typeof window === 'undefined') return false
-    const walletAddress = localStorage.getItem('walletAddress')
-    return !!(walletAddress && walletAddress.length > 0)
+    return wallet.isConnected && !!wallet.address
   }
   
   const isDemoWallet = (walletAddress?: string) => {
-    if (typeof window === 'undefined') return false
-    const address = walletAddress || localStorage.getItem('walletAddress')
-    return !!(address && address.startsWith('GDEMO'))
+    const address = walletAddress || wallet.address
+    return !!(address && typeof address === 'string' && address.startsWith('GDEMO'))
   }
   
   const canLoadData = () => {
@@ -22,8 +21,7 @@ export function useWalletStatus() {
   }
   
   const getWalletAddress = () => {
-    if (typeof window === 'undefined') return ''
-    return localStorage.getItem('walletAddress') || ''
+    return wallet.address || ''
   }
   
   return {

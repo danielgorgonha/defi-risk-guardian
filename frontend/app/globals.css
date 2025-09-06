@@ -23,4 +23,67 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
+
+html {
+  margin: 0;
+  padding: 0;
+}
+
+/* Global scrollbar is now visible by default */
+
+/* Custom Scrollbar Styles - Only for wallet modal */
+.wallet-modal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.6) rgba(30, 58, 138, 0.2);
+}
+
+.wallet-modal-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.wallet-modal-scrollbar::-webkit-scrollbar-track {
+  background: rgba(30, 58, 138, 0.2);
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+.wallet-modal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.6);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(30, 58, 138, 0.3);
+}
+
+.wallet-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.8);
+  border-color: rgba(30, 58, 138, 0.5);
+}
+
+.wallet-modal-scrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(59, 130, 246, 1);
+  border-color: rgba(30, 58, 138, 0.7);
+}
+
+.wallet-modal-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Hide global scrollbar when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+body.modal-open::-webkit-scrollbar {
+  display: none;
+}
+
+body.modal-open {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

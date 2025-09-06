@@ -1,0 +1,469 @@
+'use client'
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { useToast } from '../components/common/ToastProvider'
+
+// Types
+export interface WalletInfo {
+  address: string
+  network: 'mainnet' | 'testnet'
+  isConnected: boolean
+  walletType: 'freighter' | 'xbull' | 'ledger' | 'manual' | null
+}
+
+export interface WalletContextType {
+  wallet: WalletInfo
+  connectWallet: (type: 'freighter' | 'xbull' | 'ledger' | 'manual', address?: string) => Promise<void>
+  disconnectWallet: () => void
+  switchNetwork: (network: 'mainnet' | 'testnet') => Promise<void>
+  isLoading: boolean
+  error: string | null
+  clearCorruptedWalletData: () => void
+  debugWalletData: () => void
+}
+
+// Context
+const WalletContext = createContext<WalletContextType | undefined>(undefined)
+
+// Provider
+export function WalletProvider({ children }: { children: ReactNode }) {
+  const [wallet, setWallet] = useState<WalletInfo>({
+    address: '',
+    network: 'mainnet',
+    isConnected: false,
+    walletType: null
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const toast = useToast()
+
+  // Load wallet state from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedWallet = localStorage.getItem('walletInfo')
+        if (savedWallet) {
+          const parsedWallet = JSON.parse(savedWallet)
+          
+          // Ensure address is always a string
+          if (parsedWallet.address && typeof parsedWallet.address === 'object') {
+            console.log('🔧 Found corrupted wallet data, fixing...', parsedWallet.address)
+            // Extract address from object, or use empty string if invalid
+            const extractedAddress = parsedWallet.address.address || ''
+            if (extractedAddress && typeof extractedAddress === 'string' && extractedAddress.length > 0) {
+              parsedWallet.address = extractedAddress
+              console.log('✅ Fixed wallet address:', parsedWallet.address)
+            } else {
+              console.log('⚠️ Invalid address in object, auto-clearing wallet data')
+              autoClearCorruptedData()
+              return // Don't set the wallet state
+            }
+          }
+          
+          setWallet(parsedWallet)
+        }
+      } catch (error) {
+        console.error('Error loading wallet from localStorage:', error)
+        // Clear corrupted data
+        localStorage.removeItem('walletInfo')
+        localStorage.removeItem('walletAddress')
+      }
+    }
+
+    // Add global debug functions
+    if (typeof window !== 'undefined') {
+      (window as any).clearWalletData = () => {
+        localStorage.removeItem('walletInfo')
+        localStorage.removeItem('walletAddress')
+        console.log('✅ Cleared wallet data via global function')
+        window.location.reload()
+      }
+      
+      (window as any).testFreighterLibrary = async () => {
+        try {
+          console.log('📚 Testing Freighter Library...')
+          const freighterApi = await import('@stellar/freighter-api')
+          
+          console.log('1️⃣ isConnected:', await freighterApi.isConnected())
+          console.log('2️⃣ getAddress:', await freighterApi.getAddress())
+          
+          const addressResult = await freighterApi.getAddress()
+          const address = typeof addressResult === 'string' ? addressResult : addressResult.address
+          
+          if (address && address.length > 0) {
+            console.log('✅ Library working! Address:', address)
+          } else {
+            console.log('❌ Library connected but no address. Try requestAccess()')
+            const accessResult = await freighterApi.requestAccess()
+            console.log('3️⃣ requestAccess result:', accessResult)
+          }
+        } catch (error) {
+          console.error('❌ Library test error:', error)
+        }
+      }
+      
+    }
+  }, [])
+
+  // Save wallet state to localStorage
+  const saveWalletToStorage = (walletInfo: WalletInfo) => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('walletInfo', JSON.stringify(walletInfo))
+        localStorage.setItem('walletAddress', walletInfo.address)
+      } catch (error) {
+        console.error('Error saving wallet to localStorage:', error)
+      }
+    }
+  }
+
+  // Clear corrupted wallet data
+  const clearCorruptedWalletData = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('walletInfo')
+        localStorage.removeItem('walletAddress')
+        setWallet({
+          address: '',
+          network: 'mainnet',
+          isConnected: false,
+          walletType: null
+        })
+        console.log('✅ Cleared corrupted wallet data')
+        console.log('🔄 Please refresh the page to see changes')
+      } catch (error) {
+        console.error('Error clearing wallet data:', error)
+      }
+    }
+  }
+
+  // Auto-clear corrupted data when detected
+  const autoClearCorruptedData = () => {
+    console.log('🚨 Auto-clearing corrupted wallet data...')
+    clearCorruptedWalletData()
+    // Show a toast notification
+    toast.showWarning('Wallet Data Reset', 'Corrupted wallet data has been cleared. Please reconnect your wallet.')
+  }
+
+  // Debug function to check wallet data
+  const debugWalletData = () => {
+    if (typeof window !== 'undefined') {
+      const savedWallet = localStorage.getItem('walletInfo')
+      const savedAddress = localStorage.getItem('walletAddress')
+      console.log('🔍 Debug Wallet Data:')
+      console.log('walletInfo:', savedWallet)
+      console.log('walletAddress:', savedAddress)
+      console.log('current wallet state:', wallet)
+    }
+  }
+
+  // Clear wallet from localStorage
+  const clearWalletFromStorage = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('walletInfo')
+        localStorage.removeItem('walletAddress')
+      } catch (error) {
+        console.error('Error clearing wallet from localStorage:', error)
+      }
+    }
+  }
+
+  // Check if Freighter is installed
+  const isFreighterInstalled = (): boolean => {
+    if (typeof window === 'undefined') return false
+    return !!(window as any).freighterApi
+  }
+
+  // Verify we're using the correct Freighter API (not MetaMask)
+  const verifyFreighterAPI = (): boolean => {
+    if (typeof window === 'undefined') return false
+    const freighterApi = (window as any).freighterApi
+    if (!freighterApi) return false
+    
+    // Check if it has Freighter-specific methods
+    return typeof freighterApi.isConnected === 'function' && 
+           typeof freighterApi.getPublicKey === 'function'
+  }
+
+  // Check if Freighter has an account selected
+  const checkFreighterAccount = async (): Promise<boolean> => {
+    try {
+      const freighterApi = await import('@stellar/freighter-api')
+      const addressResult = await freighterApi.getAddress()
+      const address = typeof addressResult === 'string' ? addressResult : addressResult.address
+      return !!(address && address.length > 0)
+    } catch (error) {
+      return false
+    }
+  }
+
+  // Connect to Freighter wallet
+  const connectFreighter = async (): Promise<string> => {
+    if (typeof window === 'undefined') {
+      throw new Error('Window is not available')
+    }
+
+    try {
+      // Try to use the @stellar/freighter-api library first
+      const freighterApi = await import('@stellar/freighter-api')
+      
+      // Check if Freighter is available
+      const isAvailable = await freighterApi.isConnected()
+      
+      if (!isAvailable) {
+        // Try to request connection
+        const connectionResult = await freighterApi.requestAccess()
+        
+        if (!connectionResult) {
+          throw new Error('Failed to connect to Freighter wallet. Please approve the connection request.')
+        }
+      } else {
+        // Even if connected, check if we have an address
+        const testAddress = await freighterApi.getAddress()
+        const testAddr = typeof testAddress === 'string' ? testAddress : testAddress.address
+        if (!testAddr || testAddr.length === 0) {
+          const connectionResult = await freighterApi.requestAccess()
+        }
+      }
+
+      // Request address after ensuring connection
+      const addressResult = await freighterApi.getAddress()
+      
+      if (!addressResult) {
+        throw new Error('Failed to get public key from Freighter')
+      }
+
+      // Handle different return formats
+      const address = typeof addressResult === 'string' ? addressResult : addressResult.address
+      if (!address || typeof address !== 'string' || address.length === 0) {
+        throw new Error('Freighter wallet is not connected or no account is selected. Please connect your wallet and select an account.')
+      }
+
+      return address
+    } catch (error: any) {
+      
+      // Fallback to window.freighterApi
+      try {
+        // Check if Freighter is installed
+        if (!isFreighterInstalled()) {
+          throw new Error('Freighter wallet is not installed. Please install it from the Chrome Web Store.')
+        }
+
+        // Verify we're using the correct Freighter API (not MetaMask)
+        if (!verifyFreighterAPI()) {
+          throw new Error('Freighter API is not properly configured. Please ensure Freighter is the active wallet.')
+        }
+
+        // Ensure we're using the correct Freighter API
+        const freighterApi = (window as any).freighterApi
+        if (!freighterApi) {
+          throw new Error('Freighter API is not available')
+        }
+
+        // Check if Freighter is available
+        const isAvailable = await freighterApi.isConnected()
+        
+        if (!isAvailable) {
+          // Try to request connection
+          const connectionResult = await freighterApi.requestAccess()
+          
+          if (!connectionResult) {
+            throw new Error('Failed to connect to Freighter wallet. Please approve the connection request.')
+          }
+        }
+
+        // Request public key after ensuring connection
+        const publicKey = await freighterApi.getPublicKey()
+        
+        if (!publicKey) {
+          throw new Error('Failed to get public key from Freighter')
+        }
+
+        return publicKey
+      } catch (fallbackError: any) {
+        if (fallbackError.message.includes('not installed')) {
+          throw new Error('Freighter wallet is not installed. Please install it from the Chrome Web Store.')
+        }
+        throw fallbackError
+      }
+    }
+  }
+
+  // Connect to xBull wallet
+  const connectXBull = async (): Promise<string> => {
+    if (typeof window === 'undefined') {
+      throw new Error('Window is not available')
+    }
+
+    // Check if xBull is available
+    if (!window.xBull) {
+      throw new Error('xBull wallet is not installed. Please install it from the Chrome Web Store.')
+    }
+
+    try {
+      // Request connection
+      const result = await window.xBull.connect()
+      if (!result || !result.publicKey) {
+        throw new Error('Failed to connect to xBull wallet')
+      }
+      return result.publicKey
+    } catch (error: any) {
+      throw new Error(`xBull connection failed: ${error.message}`)
+    }
+  }
+
+  // Connect to Ledger wallet
+  const connectLedger = async (): Promise<string> => {
+    // For now, we'll show a message that Ledger support is coming soon
+    throw new Error('Ledger wallet support is coming soon. Please use Freighter or xBull for now.')
+  }
+
+  // Validate Stellar address
+  const validateStellarAddress = (address: string): boolean => {
+    // Basic Stellar address validation (starts with G and is 56 characters)
+    return /^G[A-Z0-9]{55}$/.test(address)
+  }
+
+  // Connect wallet function
+  const connectWallet = async (type: 'freighter' | 'xbull' | 'ledger' | 'manual', address?: string) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      let publicKey: string
+
+      switch (type) {
+        case 'freighter':
+          publicKey = await connectFreighter()
+          break
+        case 'xbull':
+          publicKey = await connectXBull()
+          break
+        case 'ledger':
+          publicKey = await connectLedger()
+          break
+        case 'manual':
+          if (!address) {
+            throw new Error('Address is required for manual connection')
+          }
+          if (!validateStellarAddress(address)) {
+            throw new Error('Invalid Stellar address format')
+          }
+          publicKey = address
+          break
+        default:
+          throw new Error('Unsupported wallet type')
+      }
+
+      // Ensure publicKey is a string and valid
+      let addressString = ''
+      if (typeof publicKey === 'string' && publicKey.length > 0) {
+        addressString = publicKey
+      } else if (publicKey && typeof publicKey === 'object' && (publicKey as any).address) {
+        const extractedAddress = (publicKey as any).address
+        if (typeof extractedAddress === 'string' && extractedAddress.length > 0) {
+          addressString = extractedAddress
+        }
+      }
+      
+      // Validate address format (Stellar addresses start with 'G' and are 56 characters)
+      if (!addressString || addressString.length < 10) {
+        throw new Error('Invalid wallet address received')
+      }
+      
+
+      const newWallet: WalletInfo = {
+        address: addressString,
+        network: wallet.network, // Keep current network
+        isConnected: true,
+        walletType: type
+      }
+
+      setWallet(newWallet)
+      saveWalletToStorage(newWallet)
+
+      toast.showSuccess('Wallet Connected', `Successfully connected to ${type} wallet!`)
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to connect wallet'
+      setError(errorMessage)
+      toast.showError('Connection Failed', errorMessage)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Disconnect wallet
+  const disconnectWallet = () => {
+    setWallet({
+      address: '',
+      network: 'mainnet',
+      isConnected: false,
+      walletType: null
+    })
+    clearWalletFromStorage()
+    toast.showInfo('Wallet Disconnected', 'You have been disconnected from your wallet.')
+  }
+
+  // Switch network
+  const switchNetwork = async (network: 'mainnet' | 'testnet') => {
+    if (!wallet.isConnected) {
+      throw new Error('No wallet connected')
+    }
+
+    setIsLoading(true)
+    try {
+      const updatedWallet = { ...wallet, network }
+      setWallet(updatedWallet)
+      saveWalletToStorage(updatedWallet)
+      toast.showSuccess('Network Switched', `Switched to ${network} network`)
+    } catch (error: any) {
+      toast.showError('Network Switch Failed', error.message)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const value: WalletContextType = {
+    wallet,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork,
+    isLoading,
+    error,
+    clearCorruptedWalletData,
+    debugWalletData
+  }
+
+  return (
+    <WalletContext.Provider value={value}>
+      {children}
+    </WalletContext.Provider>
+  )
+}
+
+// Hook to use wallet context
+export function useWallet() {
+  const context = useContext(WalletContext)
+  if (context === undefined) {
+    throw new Error('useWallet must be used within a WalletProvider')
+  }
+  return context
+}
+
+// Extend Window interface for wallet APIs
+declare global {
+  interface Window {
+    freighterApi?: {
+      isConnected: () => Promise<boolean>
+      getPublicKey: () => Promise<string>
+      signTransaction: (transaction: any) => Promise<any>
+    }
+    xBull?: {
+      connect: () => Promise<{ publicKey: string }>
+      signTransaction: (transaction: any) => Promise<any>
+    }
+  }
+}

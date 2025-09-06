@@ -3,6 +3,7 @@ import './globals.css'
 import { Header } from './components/common/Header'
 import { ToastProvider } from './components/common/ToastProvider'
 import { NavigationProvider } from './contexts/NavigationContext'
+import { WalletProvider } from './contexts/WalletContext'
 
 export const metadata: Metadata = {
   title: 'Risk Guardian',
@@ -22,8 +23,10 @@ export default function RootLayout({
       <body className="antialiased pt-16" suppressHydrationWarning={true}>
         <NavigationProvider>
           <ToastProvider>
-            <Header />
-            {children}
+            <WalletProvider>
+              <Header />
+              {children}
+            </WalletProvider>
           </ToastProvider>
         </NavigationProvider>
       </body>

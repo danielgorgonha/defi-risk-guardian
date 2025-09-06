@@ -15,6 +15,7 @@ import {
 import { useNavigation } from '../../contexts/NavigationContext'
 import { api } from '../../utils/api'
 import { useToast } from '../common/ToastProvider'
+import { WalletButton } from '../wallet/WalletButton'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -32,10 +33,7 @@ export function Header() {
     { name: 'Settings', href: '/settings' },
   ]
 
-  const handleConnectWallet = () => {
-    // TODO: Implement wallet connection logic
-    toast.showInfo('Connect Wallet', 'Wallet connection feature coming soon!')
-  }
+  // Removed handleConnectWallet - now handled by WalletButton component
 
   const handleTryDemo = async () => {
     setIsLoading(true)
@@ -184,12 +182,7 @@ export function Header() {
             ) : (
               <>
                 {/* Connect Wallet and Try Demo buttons */}
-                <button 
-                  onClick={handleConnectWallet}
-                  className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300"
-                >
-                  Connect Wallet
-                </button>
+                <WalletButton />
                 <button 
                   onClick={handleTryDemo}
                   disabled={isLoading}
