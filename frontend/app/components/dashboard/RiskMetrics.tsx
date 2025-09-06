@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { RiskAnalysis } from '../../utils/api'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
+import { AIRecommendations } from './AIRecommendations'
 
 interface RiskMetricsProps {
   riskAnalysis: RiskAnalysis
@@ -160,36 +161,8 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
         </div>
       </div>
 
-      {/* Recommendations */}
-      {recommendations && recommendations.length > 0 && (
-        <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-2xl shadow-lg border border-cyan-200 p-6 hover:shadow-lg hover:shadow-cyan-200 transition-all duration-300">
-          <h4 className="text-lg font-bold text-black mb-4 flex items-center">
-            <AlertTriangle className="h-5 w-5 mr-3 text-cyan-600" />
-            AI Recommendations
-          </h4>
-          <div className="space-y-3">
-            {recommendations.map((recommendation, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-cyan-500 rounded-full mt-2 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm text-gray-800 leading-relaxed font-medium">
-                    {typeof recommendation === 'string' 
-                      ? recommendation 
-                      : (recommendation as any).title || (recommendation as any).description || 'Recommendation'
-                    }
-                  </p>
-                  {typeof recommendation === 'object' && (recommendation as any).description && (recommendation as any).title && (
-                    <p className="text-xs text-gray-600 mt-1">{(recommendation as any).description}</p>
-                  )}
-                  {typeof recommendation === 'object' && (recommendation as any).impact && (
-                    <p className="text-xs text-cyan-600 mt-1 font-medium">{(recommendation as any).impact}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* AI Recommendations */}
+      <AIRecommendations riskAnalysis={riskAnalysis} />
     </div>
   )
 }
