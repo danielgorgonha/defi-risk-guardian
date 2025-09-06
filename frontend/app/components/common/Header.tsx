@@ -13,12 +13,16 @@ import {
   Bell
 } from 'lucide-react'
 import { useNavigation } from '../../contexts/NavigationContext'
+import { api } from '../../utils/api'
+import { useToast } from '../common/ToastProvider'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const pathname = usePathname()
-  const { showNavigation } = useNavigation()
+  const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode } = useNavigation()
+  const toast = useToast()
 
   const navigation = [
     { name: 'Dashboard', href: '/' },
@@ -27,9 +31,27 @@ export function Header() {
     { name: 'Settings', href: '/settings' },
   ]
 
-  // Don't render header if navigation is hidden
-  if (!showNavigation) {
-    return null
+  const handleConnectWallet = () => {
+    // TODO: Implement wallet connection logic
+    toast.showInfo('Connect Wallet', 'Wallet connection feature coming soon!')
+  }
+
+  const handleTryDemo = async () => {
+    setIsLoading(true)
+    try {
+      await api.createDemoPortfolio()
+      setIsDemoMode(true)
+      setShowNavigation(true)
+      toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully!')
+      
+      // Redirect to dashboard
+      window.location.href = '/'
+    } catch (error: any) {
+      console.error('Error creating demo portfolio:', error)
+      toast.showError('Demo Error', error.response?.data?.detail || 'Failed to create demo portfolio')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -52,24 +74,28 @@ export function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-                  pathname === item.href
-                    ? 'text-white bg-white/20 shadow-lg'
-                    : 'text-white hover:text-cyan-400 hover:bg-white/10 hover:shadow-md'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
+          {showNavigation && (
+            <nav className="hidden lg:flex space-x-1">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`px-3 lg:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    pathname === item.href
+                      ? 'text-white bg-white/20 shadow-lg'
+                      : 'text-white hover:text-cyan-400 hover:bg-white/10 hover:shadow-md'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {/* Right side */}
           <div className="flex items-center space-x-3">
+            {showNavigation ? (
+              <>
                 {/* Notifications */}
                 <button className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 relative group">
                   <Bell className="h-5 w-5" />
@@ -116,22 +142,41 @@ export function Header() {
                   )}
                 </div>
 
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300"
-            >
-              {isMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
+                {/* Mobile menu button */}
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="lg:hidden p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300"
+                >
+                  {isMenuOpen ? (
+                    <X className="h-6 w-6" />
+                  ) : (
+                    <Menu className="h-6 w-6" />
+                  )}
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Connect Wallet and Try Demo buttons */}
+                <button 
+                  onClick={handleConnectWallet}
+                  className="px-4 py-2 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300"
+                >
+                  Connect Wallet
+                </button>
+                <button 
+                  onClick={handleTryDemo}
+                  disabled={isLoading}
+                  className="px-4 py-2 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all duration-300"
+                >
+                  {isLoading ? 'Loading...' : 'Try Demo'}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        {isMenuOpen && (
+        {showNavigation && isMenuOpen && (
           <div className="lg:hidden animate-slide-up">
             <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/20">
               {navigation.map((item) => (

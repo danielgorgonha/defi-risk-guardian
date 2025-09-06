@@ -282,58 +282,20 @@ export default function Home() {
                 AI-powered DeFi Risk Management
               </div>
               
-              <div className="max-w-4xl mx-auto mb-8">
-                <label className="block text-sm font-bold text-black mb-3 text-left">
-                  Connect your wallet
-                </label>
-                <form onSubmit={handleWalletSubmit} className="flex flex-col lg:flex-row gap-3">
-                  <input
-                    type="text"
-                    value={walletAddress}
-                    onChange={(e) => setWalletAddress(e.target.value)}
-                    placeholder="Enter your Stellar address..."
-                    className="flex-1 px-6 py-4 border-2 border-gray-400 rounded-xl focus:ring-2 focus:ring-reflector focus:border-reflector transition-all duration-300 text-lg bg-white shadow-sm placeholder:text-gray-600 placeholder:font-medium"
-                  />
-                  <div className="flex flex-col sm:flex-row gap-3 lg:flex-col xl:flex-row">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="px-8 py-4 bg-gradient-to-r from-blue-900 to-cyan-500 text-white rounded-xl hover:shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 transition-all duration-300 font-semibold text-lg min-w-[140px]"
-                    >
-                      {isLoading ? (
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      ) : (
-                        <>
-                          Connect
-                          <span className="text-lg">🔗</span>
-                        </>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleDemoMode}
-                      className="px-8 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 hover:shadow-lg flex items-center justify-center gap-3 transition-all duration-300 font-semibold text-lg min-w-[140px]"
-                    >
-                      <span className="text-lg">▶️</span>
-                      Try Demo
-                    </button>
-                  </div>
-                </form>
-              </div>
-              
               {/* Trust Badge */}
               <div className="flex justify-center mb-4">
-                <div className="px-6 py-3 bg-gray-100 rounded-full border border-gray-200">
-                  <span className="text-gray-700 font-medium text-sm">
+                <div className="px-4 py-2 bg-gray-100 rounded-full border border-gray-200">
+                  <span className="text-gray-700 font-medium text-xs">
                     🛡️ Data verified by Reflector Oracle
                   </span>
                 </div>
               </div>
+              
             </div>
           </div>
 
           {/* Why Reflector Section */}
-          <div className="pt-12 pb-20">
+          <div className="pt-6 pb-20">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-extrabold text-gray-900 mb-6">
                 Why Reflector Matters for DeFi Risk Management
@@ -425,7 +387,7 @@ export default function Home() {
                               <button
                   onClick={() => {
                     if (typeof window !== 'undefined') {
-                      document.querySelector('input')?.focus()
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
                     }
                   }}
                   className="px-10 py-5 bg-white text-blue-900 rounded-xl hover:bg-gray-100 hover:shadow-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105"
