@@ -198,6 +198,37 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Helper function to validate network for an address
+  const validateNetworkForAddress = async (address: string, expectedNetwork: 'mainnet' | 'testnet') => {
+    try {
+      const horizonUrl = expectedNetwork === 'mainnet' 
+        ? 'https://horizon.stellar.org' 
+        : 'https://horizon-testnet.stellar.org'
+      
+      const response = await fetch(`${horizonUrl}/accounts/${address}`)
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(
+            `Account ${address} not found on ${expectedNetwork} network. ` +
+            `Please switch your Freighter wallet to ${expectedNetwork} network.`
+          )
+        }
+        throw new Error(`Failed to validate network: ${response.statusText}`)
+      }
+      
+      // If we get here, the account exists on the expected network
+      return true
+    } catch (error: any) {
+      if (error.message.includes('not found on')) {
+        throw error
+      }
+      // If it's a network error, we'll assume it's valid and let the user proceed
+      console.warn('Network validation failed, proceeding anyway:', error.message)
+      return true
+    }
+  }
+
   // Connect to Freighter wallet
   const connectFreighter = async (): Promise<string> => {
     if (typeof window === 'undefined') {
@@ -207,6 +238,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     try {
       // Try to use the @stellar/freighter-api library first
       const freighterApi = await import('@stellar/freighter-api')
+      
+      // Note: Freighter API doesn't have setAllowedNetworks method
+      // The network is controlled by the user in the Freighter extension
+      // We'll validate the network after connection
       
       // Check if Freighter is available
       const isAvailable = await freighterApi.isConnected()
@@ -240,6 +275,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         throw new Error('Freighter wallet is not connected or no account is selected. Please connect your wallet and select an account.')
       }
 
+      // Validate network by checking if the address exists on the expected network
+      await validateNetworkForAddress(address, wallet.network)
+
       return address
     } catch (error: any) {
       
@@ -261,6 +299,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           throw new Error('Freighter API is not available')
         }
 
+        // Note: Freighter API doesn't have setAllowedNetworks method
+        // The network is controlled by the user in the Freighter extension
+
         // Check if Freighter is available
         const isAvailable = await freighterApi.isConnected()
         
@@ -279,6 +320,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         if (!publicKey) {
           throw new Error('Failed to get public key from Freighter')
         }
+
+        // Validate network by checking if the address exists on the expected network
+        await validateNetworkForAddress(publicKey, wallet.network)
 
         return publicKey
       } catch (fallbackError: any) {
@@ -408,13 +452,20 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   // Switch network
   const switchNetwork = async (network: 'mainnet' | 'testnet') => {
-    if (!wallet.isConnected) {
-      throw new Error('No wallet connected')
-    }
-
     setIsLoading(true)
     try {
-      const updatedWallet = { ...wallet, network }
+      // If wallet is connected, disconnect it when switching networks
+      if (wallet.isConnected) {
+        disconnectWallet()
+        toast.showInfo('Wallet Disconnected', 'Wallet disconnected due to network change')
+      }
+      
+      const updatedWallet = { 
+        address: '',
+        network,
+        isConnected: false,
+        walletType: null
+      }
       setWallet(updatedWallet)
       saveWalletToStorage(updatedWallet)
       toast.showSuccess('Network Switched', `Switched to ${network} network`)

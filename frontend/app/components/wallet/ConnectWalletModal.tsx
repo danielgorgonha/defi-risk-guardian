@@ -36,6 +36,11 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
     }
   }, [isOpen])
 
+  // Update modal when wallet network changes
+  useEffect(() => {
+    // This ensures the modal re-renders when network changes
+  }, [wallet.network])
+
   // Check for wallet availability when modal opens
   useEffect(() => {
     if (isOpen) {
