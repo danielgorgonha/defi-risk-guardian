@@ -356,8 +356,8 @@ export default function Home() {
               </div>
               
               {/* Trust Badge */}
-              <div className="flex justify-center mb-4">
-                <div className="px-4 py-2 bg-gray-100 rounded-full border border-gray-200">
+              <div className="flex justify-center mb-2">
+                <div className="px-3 py-1 bg-gray-100 rounded-full border border-gray-200">
                   <span className="text-gray-700 font-medium text-xs">
                     🛡️ Data verified by Reflector Oracle
                   </span>
@@ -368,7 +368,7 @@ export default function Home() {
           </div>
 
           {/* Why Reflector Section */}
-          <div className="pt-6 pb-20">
+          <div className="pt-2 pb-20">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-extrabold text-gray-900 mb-6">
                 Why Reflector Matters for DeFi Risk Management
