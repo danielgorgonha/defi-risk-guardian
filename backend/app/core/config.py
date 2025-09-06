@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
-        "https://defi-risk-guardian.vercel.app"
+        "https://risk-guardian.vercel.app",
     ]
     
     # Rate limiting
