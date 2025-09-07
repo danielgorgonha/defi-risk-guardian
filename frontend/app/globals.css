@@ -87,3 +87,20 @@ body.modal-open {
   scrollbar-width: none;
 }
 
+/* Ensure proper spacing for fixed header */
+body {
+  position: relative;
+}
+
+/* Additional spacing for mobile navigation when opened */
+@media (max-width: 1024px) {
+  .mobile-nav-overlay {
+    backdrop-filter: blur(8px);
+  }
+  
+  /* Ensure content doesn't jump when mobile menu opens */
+  .mobile-menu-open {
+    padding-top: calc(4rem + env(safe-area-inset-top, 0px));
+  }
+}
+

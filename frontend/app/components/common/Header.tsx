@@ -144,7 +144,7 @@ export function Header() {
 
                   {/* Profile dropdown menu */}
                   {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50 animate-slide-up">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-[60] animate-slide-up">
                       <Link
                         href="/settings"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
@@ -195,10 +195,10 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - Positioned absolutely to avoid expanding header */}
         {showNavigation && isMenuOpen && (
-          <div className="lg:hidden animate-slide-up">
-            <div className="px-2 pt-2 pb-3 space-y-1 border-t border-white/20">
+          <div className="lg:hidden absolute top-16 left-0 right-0 bg-blue-900 shadow-lg border-t border-white/20 animate-slide-up z-40">
+            <div className="px-2 pt-2 pb-3 space-y-1">
               {navigation.map((item) => (
                 <Link
                   key={item.name}

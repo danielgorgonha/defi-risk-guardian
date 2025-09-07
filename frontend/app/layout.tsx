@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased pt-16" suppressHydrationWarning={true}>
+      <body className="antialiased pt-16 min-h-screen" suppressHydrationWarning={true}>
         <NavigationProvider>
           <ToastProvider>
             <WalletProvider>

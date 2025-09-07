@@ -280,7 +280,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
   const displayedRecommendations = showAllInsights ? recommendations : recommendations.slice(0, 2)
 
   return (
-    <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 rounded-2xl shadow-2xl border border-blue-500/20 p-6 text-white mb-8">
+    <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 rounded-2xl shadow-2xl border border-blue-500/20 p-6 text-white mb-8 mt-2">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
