@@ -7,6 +7,8 @@ interface NavigationContextType {
   setShowNavigation: (show: boolean) => void
   isDemoMode: boolean
   setIsDemoMode: (isDemo: boolean) => void
+  walletMode: 'disconnected' | 'connected' | 'tracked' | 'demo'
+  setWalletMode: (mode: 'disconnected' | 'connected' | 'tracked' | 'demo') => void
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined)
@@ -14,17 +16,22 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const [showNavigation, setShowNavigation] = useState(false)
   const [isDemoMode, setIsDemoMode] = useState(false)
+  const [walletMode, setWalletMode] = useState<'disconnected' | 'connected' | 'tracked' | 'demo'>('disconnected')
 
   // Load state from localStorage on mount
   useEffect(() => {
     const savedShowNavigation = localStorage.getItem('showNavigation')
     const savedIsDemoMode = localStorage.getItem('isDemoMode')
+    const savedWalletMode = localStorage.getItem('walletMode')
     
     if (savedShowNavigation !== null) {
       setShowNavigation(JSON.parse(savedShowNavigation))
     }
     if (savedIsDemoMode !== null) {
       setIsDemoMode(JSON.parse(savedIsDemoMode))
+    }
+    if (savedWalletMode !== null) {
+      setWalletMode(JSON.parse(savedWalletMode))
     }
   }, [])
 
@@ -37,12 +44,18 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('isDemoMode', JSON.stringify(isDemoMode))
   }, [isDemoMode])
 
+  useEffect(() => {
+    localStorage.setItem('walletMode', JSON.stringify(walletMode))
+  }, [walletMode])
+
   return (
     <NavigationContext.Provider value={{
       showNavigation,
       setShowNavigation,
       isDemoMode,
-      setIsDemoMode
+      setIsDemoMode,
+      walletMode,
+      setWalletMode
     }}>
       {children}
     </NavigationContext.Provider>

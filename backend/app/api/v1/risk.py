@@ -8,6 +8,7 @@ from typing import List, Dict, Any
 from app.core.database import get_db
 from app.models.database import User, Portfolio, RiskMetrics
 from app.services.stellar_oracle import stellar_oracle_client
+from app.services.ai_portfolio_analyzer import ai_analyzer
 from pydantic import BaseModel, Field
 import pandas as pd
 import numpy as np
@@ -24,12 +25,44 @@ class RiskAnalysisResponse(BaseModel):
     portfolio_value: float
     var_95: float
     var_99: float
+    cvar_95: float
     volatility: float
     sharpe_ratio: float
+    sortino_ratio: float
     beta: float
     max_drawdown: float
     risk_score: float
+    diversification_ratio: float
+    tail_risk: float
     recommendations: List[str]
+
+class PricePredictionPoint(BaseModel):
+    timestamp: str
+    predicted_price: float
+    confidence_interval: float
+
+class AssetPrediction(BaseModel):
+    asset_code: str
+    current_price: float
+    trend: str
+    confidence: float
+    support_level: float
+    resistance_level: float
+    predictions: List[PricePredictionPoint]
+
+class AIRecommendation(BaseModel):
+    type: str
+    priority: str
+    asset_code: str
+    current_allocation: float
+    recommended_allocation: float
+    reason: str
+    expected_impact: Dict[str, float]
+
+class AIAnalysisResponse(BaseModel):
+    risk_metrics: RiskAnalysisResponse
+    price_predictions: List[AssetPrediction]
+    ai_recommendations: List[AIRecommendation]
 
 @router.post("/analyze", response_model=RiskAnalysisResponse)
 async def analyze_portfolio_risk(
@@ -48,49 +81,54 @@ async def analyze_portfolio_risk(
         if not portfolios:
             raise HTTPException(status_code=404, detail="No portfolio found")
         
-        # Get current prices and calculate portfolio value
-        portfolio_data = []
-        total_value = 0.0
-        
+        # Prepare asset data for AI analysis
+        portfolio_assets = []
         for portfolio in portfolios:
-            price = await stellar_oracle_client.get_asset_price(
-                portfolio.asset_code, 
-                portfolio.asset_issuer
-            )
-            
-            if price:
-                value = portfolio.balance * price
-                total_value += value
-                
-                portfolio_data.append({
-                    "asset_code": portfolio.asset_code,
-                    "balance": portfolio.balance,
-                    "price": price,
-                    "value": value,
-                    "allocation": value / total_value if total_value > 0 else 0
-                })
+            portfolio_assets.append({
+                "asset_code": portfolio.asset_code,
+                "asset_issuer": portfolio.asset_issuer,
+                "balance": portfolio.balance
+            })
         
-        if total_value == 0:
-            raise HTTPException(status_code=400, detail="Portfolio has no value")
+        # Use AI analyzer for comprehensive analysis
+        risk_metrics, _, _ = await ai_analyzer.analyze_portfolio(portfolio_assets)
         
-        # Calculate risk metrics
-        risk_metrics = await calculate_risk_metrics(portfolio_data, total_value)
+        # Convert to legacy format recommendations
+        recommendations = []
+        if risk_metrics.risk_score > 80:
+            recommendations.append("High risk detected. Consider portfolio rebalancing.")
+        if risk_metrics.diversification_ratio < 1.2:
+            recommendations.append("Portfolio lacks diversification. Consider adding different asset classes.")
+        if risk_metrics.volatility > 0.4:
+            recommendations.append("High volatility detected. Consider adding stable assets.")
+        if not recommendations:
+            recommendations.append("Portfolio risk profile appears balanced.")
         
-        # Generate recommendations
-        recommendations = generate_risk_recommendations(risk_metrics, user.risk_tolerance)
-        
-        # Save metrics to database
-        save_risk_metrics(db, user.id, risk_metrics)
+        # Save enhanced metrics to database
+        enhanced_risk_metrics = {
+            "portfolio_value": risk_metrics.portfolio_value,
+            "var_95": risk_metrics.var_95,
+            "var_99": risk_metrics.var_99,
+            "volatility": risk_metrics.volatility,
+            "sharpe_ratio": risk_metrics.sharpe_ratio,
+            "beta": risk_metrics.beta,
+            "max_drawdown": risk_metrics.max_drawdown
+        }
+        save_risk_metrics(db, user.id, enhanced_risk_metrics)
         
         return RiskAnalysisResponse(
-            portfolio_value=total_value,
-            var_95=risk_metrics["var_95"],
-            var_99=risk_metrics["var_99"],
-            volatility=risk_metrics["volatility"],
-            sharpe_ratio=risk_metrics["sharpe_ratio"],
-            beta=risk_metrics["beta"],
-            max_drawdown=risk_metrics["max_drawdown"],
-            risk_score=risk_metrics["risk_score"],
+            portfolio_value=risk_metrics.portfolio_value,
+            var_95=risk_metrics.var_95,
+            var_99=risk_metrics.var_99,
+            cvar_95=risk_metrics.cvar_95,
+            volatility=risk_metrics.volatility,
+            sharpe_ratio=risk_metrics.sharpe_ratio,
+            sortino_ratio=risk_metrics.sortino_ratio,
+            beta=risk_metrics.beta,
+            max_drawdown=risk_metrics.max_drawdown,
+            risk_score=risk_metrics.risk_score,
+            diversification_ratio=risk_metrics.diversification_ratio,
+            tail_risk=risk_metrics.tail_risk,
             recommendations=recommendations
         )
         
@@ -98,6 +136,144 @@ async def analyze_portfolio_risk(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing risk: {str(e)}")
+
+@router.post("/ai-analysis", response_model=AIAnalysisResponse)
+async def comprehensive_ai_analysis(
+    request: RiskAnalysisRequest,
+    db: Session = Depends(get_db)
+):
+    """Perform comprehensive AI analysis including risk, predictions, and recommendations"""
+    try:
+        # Get user and portfolio
+        user = db.query(User).filter(User.wallet_address == request.wallet_address).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        portfolios = db.query(Portfolio).filter(Portfolio.user_id == user.id).all()
+        
+        if not portfolios:
+            raise HTTPException(status_code=404, detail="No portfolio found")
+        
+        # Prepare asset data for AI analysis
+        portfolio_assets = []
+        for portfolio in portfolios:
+            portfolio_assets.append({
+                "asset_code": portfolio.asset_code,
+                "asset_issuer": portfolio.asset_issuer,
+                "balance": portfolio.balance
+            })
+        
+        # Perform comprehensive AI analysis
+        risk_metrics, price_predictions, ai_recommendations = await ai_analyzer.analyze_portfolio(portfolio_assets)
+        
+        # Convert risk metrics to response format
+        recommendations = []
+        if risk_metrics.risk_score > 80:
+            recommendations.append("High risk detected. Consider portfolio rebalancing.")
+        if risk_metrics.diversification_ratio < 1.2:
+            recommendations.append("Portfolio lacks diversification. Consider adding different asset classes.")
+        if risk_metrics.volatility > 0.4:
+            recommendations.append("High volatility detected. Consider adding stable assets.")
+        if not recommendations:
+            recommendations.append("Portfolio risk profile appears balanced.")
+        
+        risk_response = RiskAnalysisResponse(
+            portfolio_value=risk_metrics.portfolio_value,
+            var_95=risk_metrics.var_95,
+            var_99=risk_metrics.var_99,
+            cvar_95=risk_metrics.cvar_95,
+            volatility=risk_metrics.volatility,
+            sharpe_ratio=risk_metrics.sharpe_ratio,
+            sortino_ratio=risk_metrics.sortino_ratio,
+            beta=risk_metrics.beta,
+            max_drawdown=risk_metrics.max_drawdown,
+            risk_score=risk_metrics.risk_score,
+            diversification_ratio=risk_metrics.diversification_ratio,
+            tail_risk=risk_metrics.tail_risk,
+            recommendations=recommendations
+        )
+        
+        # Convert price predictions
+        prediction_responses = []
+        for prediction in price_predictions:
+            prediction_points = []
+            for timestamp, price, confidence in prediction.predicted_prices:
+                prediction_points.append(PricePredictionPoint(
+                    timestamp=timestamp.isoformat(),
+                    predicted_price=price,
+                    confidence_interval=confidence
+                ))
+            
+            prediction_responses.append(AssetPrediction(
+                asset_code=prediction.asset_code,
+                current_price=prediction.current_price,
+                trend=prediction.trend,
+                confidence=prediction.confidence,
+                support_level=prediction.support_level,
+                resistance_level=prediction.resistance_level,
+                predictions=prediction_points
+            ))
+        
+        # Convert AI recommendations
+        recommendation_responses = []
+        for rec in ai_recommendations:
+            recommendation_responses.append(AIRecommendation(
+                type=rec.type,
+                priority=rec.priority,
+                asset_code=rec.asset_code,
+                current_allocation=rec.current_allocation,
+                recommended_allocation=rec.recommended_allocation,
+                reason=rec.reason,
+                expected_impact=rec.expected_impact
+            ))
+        
+        # Save enhanced metrics to database
+        enhanced_risk_metrics = {
+            "portfolio_value": risk_metrics.portfolio_value,
+            "var_95": risk_metrics.var_95,
+            "var_99": risk_metrics.var_99,
+            "volatility": risk_metrics.volatility,
+            "sharpe_ratio": risk_metrics.sharpe_ratio,
+            "beta": risk_metrics.beta,
+            "max_drawdown": risk_metrics.max_drawdown
+        }
+        save_risk_metrics(db, user.id, enhanced_risk_metrics)
+        
+        return AIAnalysisResponse(
+            risk_metrics=risk_response,
+            price_predictions=prediction_responses,
+            ai_recommendations=recommendation_responses
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error in AI analysis: {str(e)}")
+
+@router.post("/anomaly-detection")
+async def detect_anomalies(asset_codes: List[str]):
+    """Detect price anomalies for specific assets using AI"""
+    try:
+        if not asset_codes:
+            raise HTTPException(status_code=400, detail="Asset codes list cannot be empty")
+        
+        # Limit to max 10 assets to prevent abuse
+        if len(asset_codes) > 10:
+            raise HTTPException(status_code=400, detail="Maximum 10 assets allowed per request")
+        
+        # Run anomaly detection
+        anomaly_results = await ai_analyzer.detect_market_anomalies(asset_codes)
+        
+        return {
+            "anomaly_detection_results": anomaly_results,
+            "total_assets_analyzed": len(asset_codes),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error in anomaly detection: {str(e)}")
 
 @router.get("/{wallet_address}/metrics")
 async def get_risk_metrics(wallet_address: str, db: Session = Depends(get_db)):
