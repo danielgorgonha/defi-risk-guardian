@@ -21,6 +21,7 @@ import { LoadingSpinner } from './components/common/LoadingSpinner'
 import { useToast } from './components/common/ToastProvider'
 import { useNavigation } from './contexts/NavigationContext'
 import { useWalletStatus } from './hooks/useWalletStatus'
+import { useWallet } from './contexts/WalletContext'
 import { DemoModeBanner } from './components/common/DemoModeBanner'
 import { api, Portfolio, RiskAnalysis, Alert } from './utils/api'
 
@@ -106,8 +107,9 @@ export default function Home() {
   const [isLoadingData, setIsLoadingData] = useState(false)
   const [showWalletConnect, setShowWalletConnect] = useState(false)
   const toast = useToast()
-  const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode } = useNavigation()
+  const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
   const { canLoadData, walletAddress: currentWalletAddress } = useWalletStatus()
+  const { wallet } = useWallet()
 
   // Demo data
   const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -139,6 +141,66 @@ export default function Home() {
     }
   }, [isDemoMode])
 
+  // Auto-activate navigation when wallet connects via WalletContext
+  useEffect(() => {
+    if (wallet.isConnected && wallet.address && !showNavigation && !isDemoMode) {
+      console.log('🚀 Wallet connected via WalletContext, activating navigation')
+      setShowNavigation(true)
+      setWalletMode('connected') // Mark as truly connected wallet
+      // Sync wallet address for consistency
+      const walletAddr = typeof wallet.address === 'string' ? wallet.address : (wallet.address as any)?.address || wallet.address
+      setWalletAddress(walletAddr)
+      localStorage.setItem('walletAddress', walletAddr)
+      // Show success message
+      toast.showSuccess('Wallet Connected', 'Welcome to Risk Guardian! Loading your portfolio...')
+      // Load portfolio data
+      setTimeout(async () => {
+        await loadPortfolioData()
+      }, 100)
+    } else if (!wallet.isConnected && !isDemoMode && showNavigation && walletMode === 'connected') {
+      console.log('🔌 Wallet disconnected, deactivating navigation')
+      setShowNavigation(false)
+      setWalletMode('disconnected')
+      setWalletAddress('')
+      localStorage.removeItem('walletAddress')
+      // Clear portfolio data
+      setPortfolio(null)
+      setRiskAnalysis(null)
+      setAlerts([])
+    }
+  }, [wallet.isConnected, wallet.address, showNavigation, isDemoMode, walletMode])
+
+  // Handle signout - clear data when walletMode becomes 'disconnected'
+  useEffect(() => {
+    if (walletMode === 'disconnected' && !showNavigation) {
+      console.log('🔄 Handling signout - clearing all data')
+      setWalletAddress('')
+      setPortfolio(null)
+      setRiskAnalysis(null)
+      setAlerts([])
+      setIsLoadingData(false)
+      setShowWalletConnect(false)
+    }
+  }, [walletMode, showNavigation])
+
+  // Ensure walletAddress is synced when we have an active wallet
+  useEffect(() => {
+    if (showNavigation && walletMode !== 'disconnected') {
+      const savedWalletAddress = localStorage.getItem('walletAddress')
+      
+      if (walletMode === 'connected' && wallet.isConnected && wallet.address) {
+        // For connected wallets, use the address from WalletContext
+        const walletAddr = typeof wallet.address === 'string' ? wallet.address : (wallet.address as any)?.address || wallet.address
+        if (walletAddr && walletAddr !== walletAddress) {
+          setWalletAddress(walletAddr)
+        }
+      } else if ((walletMode === 'demo' || walletMode === 'tracked') && savedWalletAddress && !walletAddress) {
+        // For demo/tracked wallets, use saved address
+        setWalletAddress(savedWalletAddress)
+      }
+    }
+  }, [showNavigation, walletMode, wallet.isConnected, wallet.address, walletAddress])
+
   const handleWalletSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!walletAddress.trim()) {
@@ -154,8 +216,9 @@ export default function Home() {
       // Save wallet address and enable navigation
       localStorage.setItem('walletAddress', walletAddress)
       setShowNavigation(true)
+      setWalletMode('tracked') // Mark as manually tracked wallet
       
-      toast.showSuccess('Wallet Connected', 'Your Stellar wallet has been connected successfully! Loading data...')
+      toast.showSuccess('Wallet Tracked', 'Your Stellar wallet is now being tracked! Loading portfolio data...')
       
       // Load portfolio data after connection
       setTimeout(async () => {
@@ -163,8 +226,8 @@ export default function Home() {
       }, 100)
       
     } catch (error: any) {
-      console.error('Error connecting wallet:', error)
-      toast.showError('Connection Error', error.response?.data?.detail || 'Failed to connect wallet')
+      console.error('Error tracking wallet:', error)
+      toast.showError('Tracking Error', error.response?.data?.detail || 'Failed to track wallet')
     } finally {
       setIsLoading(false)
     }
@@ -180,6 +243,7 @@ export default function Home() {
       localStorage.setItem('walletAddress', demoWalletAddress)
       setIsDemoMode(true) // Enable demo mode
       setShowNavigation(true) // Show navigation menus
+      setWalletMode('demo') // Mark as demo mode
       toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully! Loading data...')
       
       // Wait a bit for state to update, then load the demo data from backend
@@ -195,6 +259,7 @@ export default function Home() {
       localStorage.setItem('walletAddress', demoWalletAddress)
       setIsDemoMode(true)
       setShowNavigation(true) // Show navigation even with mock data
+      setWalletMode('demo') // Mark as demo mode
       setPortfolio(mockPortfolio as Portfolio)
       setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
       setAlerts(mockAlerts as Alert[])
@@ -333,7 +398,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
 
-      {!walletAddress ? (
+      {!showNavigation || walletMode === 'disconnected' ? (
         // Landing Page
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}

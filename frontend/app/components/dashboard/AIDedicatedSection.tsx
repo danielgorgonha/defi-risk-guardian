@@ -81,9 +81,9 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
     portfolioProtected: 2847350, // USD value protected by AI
     riskEventsPreventedToday: 0,
     lastUpdate: new Date(),
-    yieldOptimized: 84, // percentage improvement
+    yieldOptimized: 84.0, // percentage improvement
     marketCrashesDetected: 47, // Total market crashes detected and avoided
-    rebalancingWinRate: 91 // percentage success rate
+    rebalancingWinRate: 91.0 // percentage success rate
   })
 
   const [aiAnalysisData, setAiAnalysisData] = useState<AIAnalysisData | null>(null)
@@ -148,9 +148,9 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
         confidence: Math.round(data.risk_metrics.risk_score || 0),
         portfolioProtected: prev.portfolioProtected + Math.floor(Math.random() * 10000), // Incremental protection
         riskEventsPreventedToday: Math.floor(Math.random() * 8) + 3, // 3-10 events prevented daily
-        yieldOptimized: Math.min(97, 78 + Math.floor(Math.random() * 15)), // 78-93% optimization
+        yieldOptimized: Math.round(Math.min(97, 78 + Math.random() * 15) * 10) / 10, // 78-93% optimization, 1 decimal
         marketCrashesDetected: prev.marketCrashesDetected, // Keep historical number
-        rebalancingWinRate: Math.min(94, 82 + Math.floor(Math.random() * 12)), // 82-94% success rate
+        rebalancingWinRate: Math.round(Math.min(94, 82 + Math.random() * 12) * 10) / 10, // 82-94% success rate, 1 decimal
         lastUpdate: new Date()
       }))
       
@@ -166,8 +166,8 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
         confidence: Math.round(riskAnalysis.risk_score || 50),
         portfolioProtected: 1250000 + Math.floor(Math.random() * 500000), // $1.25M - $1.75M protected
         riskEventsPreventedToday: Math.floor(Math.random() * 6) + 2, // 2-7 events prevented
-        yieldOptimized: 87, // 87% yield optimization
-        rebalancingWinRate: 91 // 91% success rate
+        yieldOptimized: 87.0, // 87% yield optimization
+        rebalancingWinRate: 91.0 // 91% success rate
       }))
     } finally {
       setIsLoading(false)
@@ -193,10 +193,10 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
       const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000)
       chartPoints.push({
         timestamp: timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        riskPrediction: 94 + Math.random() * 6,
-        marketAnalysis: 89 + Math.random() * 8,
-        portfolioOptimization: 92 + Math.random() * 6,
-        anomalyDetection: 97 + Math.random() * 3
+        riskPrediction: Math.round((94 + Math.random() * 6) * 10) / 10, // 1 decimal place
+        marketAnalysis: Math.round((89 + Math.random() * 8) * 10) / 10, // 1 decimal place
+        portfolioOptimization: Math.round((92 + Math.random() * 6) * 10) / 10, // 1 decimal place
+        anomalyDetection: Math.round((97 + Math.random() * 3) * 10) / 10 // 1 decimal place
       })
     }
     
@@ -218,10 +218,10 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
         ...prev,
         portfolioProtected: prev.portfolioProtected + Math.floor(Math.random() * 5000 + 1000), // $1K-$6K incremental protection
         riskEventsPreventedToday: Math.min(15, prev.riskEventsPreventedToday + (Math.random() < 0.3 ? 1 : 0)), // Occasional new prevention
-        yieldOptimized: Math.min(97, Math.max(75, prev.yieldOptimized + (Math.random() - 0.5) * 2)), // Small fluctuations
-        rebalancingWinRate: Math.min(96, Math.max(85, prev.rebalancingWinRate + (Math.random() - 0.5) * 1)), // Small adjustments
+        yieldOptimized: Math.round(Math.min(97, Math.max(75, prev.yieldOptimized + (Math.random() - 0.5) * 2)) * 10) / 10, // Small fluctuations, 1 decimal
+        rebalancingWinRate: Math.round(Math.min(96, Math.max(85, prev.rebalancingWinRate + (Math.random() - 0.5) * 1)) * 10) / 10, // Small adjustments, 1 decimal
         lastUpdate: new Date(),
-        confidence: Math.min(99, Math.max(70, prev.confidence + (Math.random() - 0.5) * 2))
+        confidence: Math.round(Math.min(99, Math.max(70, prev.confidence + (Math.random() - 0.5) * 2)) * 10) / 10
       }))
       setIsAnimating(true)
       setTimeout(() => setIsAnimating(false), 1000)
@@ -279,6 +279,11 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
 
   const displayedRecommendations = showAllInsights ? recommendations : recommendations.slice(0, 2)
 
+  // Utility function to format percentage values consistently
+  const formatPercentage = (value: number, decimals: number = 1): string => {
+    return Number(value).toFixed(decimals)
+  }
+
   return (
     <div className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 rounded-2xl shadow-2xl border border-blue-500/20 p-6 text-white mb-8 mt-2">
       {/* Header */}
@@ -328,7 +333,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
             <TrendingUp className="h-5 w-5 text-blue-400" />
             <span className="text-xs text-gray-300">Yield Optimized</span>
           </div>
-          <div className="text-2xl font-bold text-white">{aiStatus.yieldOptimized}%</div>
+          <div className="text-2xl font-bold text-white truncate">{formatPercentage(aiStatus.yieldOptimized)}%</div>
           <div className="text-xs text-blue-400">Above Market</div>
         </div>
 
@@ -346,7 +351,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
             <Target className="h-5 w-5 text-purple-400" />
             <span className="text-xs text-gray-300">Rebalancing Wins</span>
           </div>
-          <div className="text-2xl font-bold text-white">{aiStatus.rebalancingWinRate.toFixed(1)}%</div>
+          <div className="text-2xl font-bold text-white truncate">{formatPercentage(aiStatus.rebalancingWinRate)}%</div>
           <div className="text-xs text-purple-400">Success Rate</div>
         </div>
       </div>
@@ -458,32 +463,32 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
                   <div className="bg-white/10 rounded-lg p-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-300">Risk Prediction</span>
-                      <span className="text-green-400 font-bold">
-                        {chartData[chartData.length - 1]?.riskPrediction.toFixed(0)}%
+                      <span className="text-green-400 font-bold truncate">
+                        {formatPercentage(chartData[chartData.length - 1]?.riskPrediction, 0)}%
                       </span>
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-lg p-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-300">Market Analysis</span>
-                      <span className="text-blue-400 font-bold">
-                        {chartData[chartData.length - 1]?.marketAnalysis.toFixed(0)}%
+                      <span className="text-blue-400 font-bold truncate">
+                        {formatPercentage(chartData[chartData.length - 1]?.marketAnalysis, 0)}%
                       </span>
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-lg p-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-300">Portfolio Optimization</span>
-                      <span className="text-purple-400 font-bold">
-                        {chartData[chartData.length - 1]?.portfolioOptimization.toFixed(0)}%
+                      <span className="text-purple-400 font-bold truncate">
+                        {formatPercentage(chartData[chartData.length - 1]?.portfolioOptimization, 0)}%
                       </span>
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-lg p-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-gray-300">Anomaly Detection</span>
-                      <span className="text-yellow-400 font-bold">
-                        {chartData[chartData.length - 1]?.anomalyDetection.toFixed(0)}%
+                      <span className="text-yellow-400 font-bold truncate">
+                        {formatPercentage(chartData[chartData.length - 1]?.anomalyDetection, 0)}%
                       </span>
                     </div>
                   </div>
@@ -618,7 +623,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
             <TrendingUp className="h-4 w-4 mr-2 text-blue-400" />
             AI Confidence Level
           </h4>
-          <span className="text-lg font-bold text-white">{aiStatus.confidence.toFixed(1)}%</span>
+          <span className="text-lg font-bold text-white">{formatPercentage(aiStatus.confidence)}%</span>
         </div>
         <div className="w-full bg-gray-700 rounded-full h-3">
           <div 
