@@ -12,8 +12,8 @@ export function WalletButton() {
 
   const formatAddress = (address: string | undefined | null | any) => {
     // Handle object format {address: "..."}
-    if (address && typeof address === 'object' && address.address) {
-      address = address.address
+    if (address && typeof address === 'object' && 'address' in address) {
+      address = (address as any).address
     }
     
     if (!address || typeof address !== 'string') return 'Unknown'
@@ -25,8 +25,8 @@ export function WalletButton() {
     try {
       // Handle object format {address: "..."}
       let address = wallet.address
-      if (address && typeof address === 'object' && address.address) {
-        address = address.address
+      if (address && typeof address === 'object' && 'address' in address) {
+        address = (address as any).address
       }
       
       await navigator.clipboard.writeText(address || '')
@@ -39,8 +39,8 @@ export function WalletButton() {
   const openInStellarExpert = () => {
     // Handle object format {address: "..."}
     let address = wallet.address
-    if (address && typeof address === 'object' && address.address) {
-      address = address.address
+    if (address && typeof address === 'object' && 'address' in address) {
+      address = (address as any).address
     }
     
     const url = `https://stellar.expert/explorer/testnet/account/${address}`

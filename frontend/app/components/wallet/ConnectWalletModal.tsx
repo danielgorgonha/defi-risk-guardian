@@ -222,16 +222,19 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
             >
               Mainnet
             </button>
-            <button
-              onClick={() => switchNetwork('testnet')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                wallet.network === 'testnet'
-                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
-                  : 'text-blue-200 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              Testnet
-            </button>
+            {/* Temporarily hidden - Testnet button */}
+            {false && (
+              <button
+                onClick={() => switchNetwork('testnet')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  wallet.network === 'testnet'
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                    : 'text-blue-200 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                Testnet
+              </button>
+            )}
           </div>
         </div>
 
