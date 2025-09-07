@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useToast } from '../components/common/ToastProvider'
+import { api } from '../utils/api'
 
 // Types
 export interface WalletInfo {
@@ -369,6 +370,20 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     return /^G[A-Z0-9]{55}$/.test(address)
   }
 
+  // Create user in backend
+  const createUserInBackend = async (walletAddress: string) => {
+    try {
+      console.log('🔄 Creating user in backend for address:', walletAddress)
+      await api.createUser(walletAddress)
+      console.log('✅ User created successfully in backend')
+      toast.showSuccess('Account Setup', 'Your portfolio has been initialized!')
+    } catch (error: any) {
+      console.warn('⚠️ User creation failed, might already exist:', error)
+      // Don't show error toast since user might already exist
+      // The important thing is that the wallet is connected
+    }
+  }
+
   // Connect wallet function
   const connectWallet = async (type: 'freighter' | 'xbull' | 'ledger' | 'manual', address?: string) => {
     setIsLoading(true)
@@ -428,6 +443,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       saveWalletToStorage(newWallet)
 
       toast.showSuccess('Wallet Connected', `Successfully connected to ${type} wallet!`)
+
+      // Automatically create user in backend
+      await createUserInBackend(addressString)
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to connect wallet'
       setError(errorMessage)
