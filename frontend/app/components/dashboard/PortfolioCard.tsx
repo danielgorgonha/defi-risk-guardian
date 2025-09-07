@@ -9,6 +9,7 @@ import {
   Plus,
   Settings
 } from 'lucide-react'
+import { PieChart as RechartsPieChart, Cell, ResponsiveContainer, Pie, Tooltip, Legend } from 'recharts'
 import { Portfolio, Asset } from '../../utils/api'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
 import { AddAssetModal } from '../portfolio/AddAssetModal'
@@ -25,6 +26,28 @@ export function PortfolioCard({ portfolio, onAssetAdded }: PortfolioCardProps) {
   const totalValue = portfolio.total_value
   const riskScore = portfolio.risk_score
   const assets = portfolio.assets
+
+  // Prepare data for the pie chart
+  const chartData = assets.map((asset) => ({
+    name: asset.asset_code,
+    value: asset.current_allocation,
+    valueUSD: asset.value_usd,
+    balance: asset.balance
+  }))
+
+  // Define colors for the pie chart
+  const COLORS = [
+    '#3B82F6', // blue-500
+    '#10B981', // emerald-500
+    '#F59E0B', // amber-500
+    '#EF4444', // red-500
+    '#8B5CF6', // violet-500
+    '#F97316', // orange-500
+    '#06B6D4', // cyan-500
+    '#84CC16', // lime-500
+    '#EC4899', // pink-500
+    '#6366F1'  // indigo-500
+  ]
 
   const getRiskColor = (score: number) => {
     if (score < 30) return 'text-green-700 bg-green-100 border-green-200'
@@ -132,21 +155,90 @@ export function PortfolioCard({ portfolio, onAssetAdded }: PortfolioCardProps) {
         </div>
       </div>
 
-      {/* Allocation Chart Placeholder */}
+      {/* Asset Distribution Chart */}
       <div className="mt-8 p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
-        <h4 className="text-lg font-semibold text-black mb-4 flex items-center">
+        <h4 className="text-lg font-semibold text-black mb-6 flex items-center">
           <PieChart className="h-5 w-5 mr-2 text-blue-600" />
           Asset Distribution
         </h4>
-        <div className="flex items-center justify-center h-40 text-gray-800">
-          <div className="text-center">
-            <div className="p-4 bg-white rounded-full shadow-lg mb-4">
-              <PieChart className="h-12 w-12 text-blue-600" />
+        
+        {assets.length > 0 ? (
+          <div className="flex flex-col lg:flex-row items-center gap-6">
+            {/* Pie Chart */}
+            <div className="flex-1 h-64 w-full max-w-sm">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={chartData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    innerRadius={30}
+                    paddingAngle={2}
+                    label={({ name, value }) => `${name}: ${value.toFixed(1)}%`}
+                    labelLine={false}
+                  >
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload
+                        return (
+                          <div className="bg-white p-3 rounded-lg shadow-lg border">
+                            <p className="font-semibold">{data.name}</p>
+                            <p className="text-sm text-gray-600">
+                              {formatPercentage(data.value)} ({formatCurrency(data.valueUSD)})
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Balance: {data.balance.toLocaleString()} tokens
+                            </p>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                </RechartsPieChart>
+              </ResponsiveContainer>
             </div>
-            <p className="text-lg font-medium text-black">Distribution Chart</p>
-            <p className="text-sm text-gray-700 font-medium">(Will be implemented with Recharts)</p>
+            
+            {/* Legend */}
+            <div className="flex-1 min-w-0">
+              <div className="grid grid-cols-1 gap-3">
+                {chartData.map((item, index) => (
+                  <div key={item.name} className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border">
+                    <div className="flex items-center space-x-3">
+                      <div 
+                        className="w-4 h-4 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      />
+                      <div>
+                        <p className="font-medium text-gray-900">{item.name}</p>
+                        <p className="text-sm text-gray-500">{item.balance.toLocaleString()} tokens</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{formatPercentage(item.value)}</p>
+                      <p className="text-sm text-gray-500">{formatCurrency(item.valueUSD)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center justify-center h-40 text-gray-500">
+            <div className="text-center">
+              <PieChart className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+              <p className="font-medium">No assets to display</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add Asset Modal */}
