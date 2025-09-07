@@ -23,6 +23,7 @@ import { useNavigation } from './contexts/NavigationContext'
 import { useWalletStatus } from './hooks/useWalletStatus'
 import { useWallet } from './contexts/WalletContext'
 import { DemoModeBanner } from './components/common/DemoModeBanner'
+import { ConnectWalletModal } from './components/wallet/ConnectWalletModal'
 import { api, Portfolio, RiskAnalysis, Alert } from './utils/api'
 
 // Mock data for demo
@@ -105,7 +106,7 @@ export default function Home() {
   const [riskAnalysis, setRiskAnalysis] = useState<RiskAnalysis | null>(null)
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [isLoadingData, setIsLoadingData] = useState(false)
-  const [showWalletConnect, setShowWalletConnect] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const toast = useToast()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
   const { canLoadData, walletAddress: currentWalletAddress } = useWalletStatus()
@@ -179,7 +180,7 @@ export default function Home() {
       setRiskAnalysis(null)
       setAlerts([])
       setIsLoadingData(false)
-      setShowWalletConnect(false)
+      setIsWalletModalOpen(false)
     }
   }, [walletMode, showNavigation])
 
@@ -526,112 +527,15 @@ export default function Home() {
               <p className="text-xl md:text-2xl mb-10 text-white max-w-3xl mx-auto font-semibold drop-shadow-lg">
                 Connect your Stellar wallet and start using the most advanced risk management system
               </p>
-                              <button
-                  onClick={() => {
-                    setShowWalletConnect(true)
-                    if (typeof window !== 'undefined') {
-                      setTimeout(() => {
-                        const element = document.getElementById('wallet-connect-section')
-                        element?.scrollIntoView({ behavior: 'smooth' })
-                      }, 100)
-                    }
-                  }}
-                  className="px-10 py-5 bg-white text-blue-900 rounded-xl hover:bg-gray-100 hover:shadow-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105"
-                >
-                  Get Started Now
-                </button>
+              <button
+                onClick={() => setIsWalletModalOpen(true)}
+                className="px-10 py-5 bg-white text-blue-900 rounded-xl hover:bg-gray-100 hover:shadow-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105"
+              >
+                Get Started Now
+              </button>
             </div>
           </div>
 
-          {/* Wallet Connect Section */}
-          {showWalletConnect && (
-            <div id="wallet-connect-section" className="py-20 bg-gray-50">
-              <div className="max-w-4xl mx-auto">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                    Connect Your Stellar Wallet
-                  </h2>
-                  <p className="text-lg text-gray-600">
-                    Enter your Stellar wallet address or try our demo to get started
-                  </p>
-                </div>
-
-                <div className="bg-white rounded-2xl shadow-lg p-8">
-                  <form onSubmit={handleWalletSubmit} className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Stellar Wallet Address
-                      </label>
-                      <input
-                        type="text"
-                        value={walletAddress}
-                        onChange={(e) => setWalletAddress(e.target.value)}
-                        placeholder="GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                        disabled={isLoading}
-                      />
-                      <p className="text-sm text-gray-500 mt-2">
-                        Enter your Stellar public key to analyze your portfolio
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <button
-                        type="submit"
-                        disabled={isLoading || !walletAddress.trim()}
-                        className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
-                      >
-                        {isLoading ? 'Connecting...' : 'Connect Wallet'}
-                      </button>
-                      
-                      <button
-                        type="button"
-                        onClick={handleDemoMode}
-                        disabled={isLoading}
-                        className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
-                      >
-                        {isLoading ? 'Loading...' : 'Try Demo Mode'}
-                      </button>
-                    </div>
-                  </form>
-
-                  <div className="mt-8 pt-6 border-t border-gray-200">
-                    <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-4">
-                        Don't have a Stellar wallet? Get started with these options:
-                      </p>
-                      <div className="flex justify-center space-x-4">
-                        <a
-                          href="https://www.freighter.app/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                        >
-                          Freighter Wallet
-                        </a>
-                        <a
-                          href="https://albedo.link/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                        >
-                          Albedo
-                        </a>
-                        <a
-                          href="https://laboratory.stellar.org/#account-creator"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                        >
-                          Stellar Laboratory
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Footer */}
           <footer className="mt-20 py-12 bg-gray-50 border-t border-gray-200">
@@ -763,6 +667,11 @@ export default function Home() {
           )}
         </div>
       )}
+      {/* Connect Wallet Modal */}
+      <ConnectWalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+      />
     </div>
   )
 }
