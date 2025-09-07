@@ -17,7 +17,10 @@ export function useWalletStatus() {
   }
   
   const canLoadData = () => {
-    return isDemoMode || (isWalletConnected() && isDemoWallet())
+    // Allow loading data if:
+    // 1. In demo mode, OR
+    // 2. Wallet is connected (regardless of demo or real)
+    return isDemoMode || isWalletConnected()
   }
   
   const getWalletAddress = () => {

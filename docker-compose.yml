@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -43,8 +41,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://defi_user:defi_password@postgres:5432/defi_risk
       - REDIS_URL=redis://redis:6379
-      - STELLAR_NETWORK=testnet
-      - HORIZON_URL=https://horizon-testnet.stellar.org
+      - STELLAR_NETWORK=mainnet
+      - HORIZON_URL=https://horizon.stellar.org
       - REFLECTOR_API_URL=https://reflector-api.stellar.org
       - SECRET_KEY=your-secret-key-change-in-production
       - DEBUG=true
@@ -76,7 +74,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: npm run dev
+    command: pnpm run dev
 
   # Celery Worker (Background Jobs)
   celery-worker:
