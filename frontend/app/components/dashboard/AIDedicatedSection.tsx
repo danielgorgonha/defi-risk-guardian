@@ -268,6 +268,15 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
     }
   }
 
+  const getStatusTextColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-green-600'
+      case 'analyzing': return 'text-blue-600'
+      case 'learning': return 'text-purple-600'
+      default: return 'text-gray-600'
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active': return <CheckCircle className="h-4 w-4" />
@@ -302,7 +311,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
         </div>
         <div className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center space-x-1 ${getStatusColor(aiStatus.status)}`}>
           {getStatusIcon(aiStatus.status)}
-          <span className="text-white">{aiStatus.status.toUpperCase()}</span>
+          <span className={getStatusTextColor(aiStatus.status)}>{aiStatus.status.toUpperCase()}</span>
         </div>
       </div>
 
