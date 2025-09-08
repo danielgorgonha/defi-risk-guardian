@@ -180,7 +180,6 @@ export function Header() {
                 <button className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 relative group">
                   <Bell className="h-5 w-5" />
                   <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
-                  <div className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
 
                 {/* Profile dropdown */}
