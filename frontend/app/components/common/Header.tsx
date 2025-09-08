@@ -20,6 +20,7 @@ import { useWallet } from '../../contexts/WalletContext'
 import { api } from '../../utils/api'
 import { useToast } from '../common/ToastProvider'
 import { WalletButton } from '../wallet/WalletButton'
+import { NotificationsDropdown } from './NotificationsDropdown'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -177,10 +178,7 @@ export function Header() {
             {showNavigation ? (
               <>
                 {/* Notifications */}
-                <button className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300 relative group">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
-                </button>
+                <NotificationsDropdown />
 
                 {/* Profile dropdown */}
                 <div className="relative">

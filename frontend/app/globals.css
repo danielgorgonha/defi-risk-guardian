@@ -104,3 +104,28 @@ body {
   }
 }
 
+/* Notification dropdown animations */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slide-down 0.2s ease-out;
+}
+
+/* Professional notification bell styling */
+.notification-bell {
+  transition: all 0.2s ease;
+}
+
+.notification-bell:hover {
+  transform: translateY(-1px);
+}
+
