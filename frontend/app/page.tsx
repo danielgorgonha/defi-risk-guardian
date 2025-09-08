@@ -20,6 +20,7 @@ import { useNavigation } from './contexts/NavigationContext'
 import { useWallet } from './contexts/WalletContext'
 import { ConnectWalletModal } from './components/wallet/ConnectWalletModal'
 import { api } from './utils/api'
+import { DemoModeBanner } from './components/common/DemoModeBanner'
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = useState('')
@@ -96,28 +97,6 @@ export default function Home() {
     }
   }
 
-  const handleExitDemo = () => {
-    // Clear localStorage
-    localStorage.removeItem('showNavigation')
-    localStorage.removeItem('isDemoMode')
-    localStorage.removeItem('walletAddress')
-    localStorage.removeItem('walletMode')
-    
-    // Reset all states
-    setIsDemoMode(false)
-    setShowNavigation(false)
-    setWalletMode('disconnected')
-    
-    // Disconnect wallet silently (no duplicate notifications)
-    disconnectWallet(true)
-    
-    // Show success message
-    toast.showSuccess('Demo Mode Exited', 'You have exited demo mode successfully!')
-    
-    // Redirect to landing page (refresh current page)
-    router.push('/')
-  }
-
   const features = [
     {
       icon: Shield,
@@ -155,26 +134,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Demo Mode Indicator */}
-        {isDemoMode && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 mt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Star className="h-5 w-5 text-orange-600" />
-                <span className="text-orange-800 font-medium">Demo Mode Active</span>
-                <span className="text-orange-600 text-sm">You are viewing demo data</span>
-              </div>
-              <button 
-                onClick={handleExitDemo}
-                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors duration-200 text-sm font-medium"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Exit Demo
-              </button>
-            </div>
-          </div>
-        )}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DemoModeBanner />
         
         {/* Hero Section */}
         <div className="text-center py-20 relative overflow-hidden">
@@ -308,15 +269,15 @@ export default function Home() {
                 onClick={() => setIsWalletModalOpen(true)}
                 className="px-10 py-5 bg-white text-blue-900 rounded-xl hover:bg-gray-100 hover:shadow-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105"
               >
-                Connect Wallet
+                Get Started Now
               </button>
-              <button
+              {/* <button
                 onClick={handleDemoMode}
                 disabled={isLoading}
                 className="px-10 py-5 bg-transparent border-2 border-white text-white rounded-xl hover:bg-white hover:text-blue-900 hover:shadow-2xl font-bold text-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Loading...' : 'Try Demo'}
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
