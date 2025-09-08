@@ -132,10 +132,8 @@ export function Header() {
     
     toast.showSuccess('Signed Out', messages[walletMode] || messages.disconnected)
     
-    // Force page refresh to ensure clean state
-    setTimeout(() => {
-      window.location.href = '/'
-    }, 500)
+    // Immediate redirect for better UX
+    router.push('/')
   }
 
   // Header should be fixed only on main page (when not logged in)
