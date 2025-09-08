@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useNavigation } from '../contexts/NavigationContext'
 import { useWalletStatus } from '../hooks/useWalletStatus'
 import { DemoModeBanner } from '../components/common/DemoModeBanner'
+import { AuthGuard } from '../components/common/AuthGuard'
 import { 
   User, 
   Bell, 
@@ -66,7 +67,8 @@ export default function SettingsPage() {
 
 
   return (
-    <div className="min-h-screen bg-white">
+    <AuthGuard>
+      <div className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <DemoModeBanner />
         
@@ -306,5 +308,6 @@ export default function SettingsPage() {
         )}
       </div>
     </div>
+    </AuthGuard>
   )
 }

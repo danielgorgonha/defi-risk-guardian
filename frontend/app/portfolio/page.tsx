@@ -9,6 +9,7 @@ import { useNavigation } from '../contexts/NavigationContext'
 import { useWalletStatus } from '../hooks/useWalletStatus'
 import { useWallet } from '../contexts/WalletContext'
 import { DemoModeBanner } from '../components/common/DemoModeBanner'
+import { AuthGuard } from '../components/common/AuthGuard'
 
 
 export default function PortfolioPage() {
@@ -96,54 +97,56 @@ export default function PortfolioPage() {
 
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DemoModeBanner />
+    <AuthGuard>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <DemoModeBanner />
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <LoadingSpinner />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Portfolio Overview - Full Width */}
-            <div className="lg:col-span-3">
-              {portfolio ? (
-                <PortfolioCard portfolio={portfolio} onAssetAdded={loadPortfolio} />
-              ) : (
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-                  <div className="text-center text-gray-500">
-                    {walletMode === 'disconnected' ? (
-                      <>
-                        <p className="text-xl mb-2">No wallet connected</p>
-                        <p className="text-sm">Connect a wallet or enter a wallet address to view portfolio data</p>
-                      </>
-                    ) : walletMode === 'demo' ? (
-                      <>
-                        <p className="text-xl mb-2">Demo Portfolio Loading...</p>
-                        <p className="text-sm">If this persists, refresh the page</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-xl mb-2">No portfolio data found</p>
-                        <p className="text-sm mb-4">
-                          {walletMode === 'connected' 
-                            ? 'No portfolio found for your connected wallet' 
-                            : 'No portfolio found for this wallet address'}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          Wallet: {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-6)}` : 'Unknown'}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <LoadingSpinner />
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Portfolio Overview - Full Width */}
+              <div className="lg:col-span-3">
+                {portfolio ? (
+                  <PortfolioCard portfolio={portfolio} onAssetAdded={loadPortfolio} />
+                ) : (
+                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+                    <div className="text-center text-gray-500">
+                      {walletMode === 'disconnected' ? (
+                        <>
+                          <p className="text-xl mb-2">No wallet connected</p>
+                          <p className="text-sm">Connect a wallet or enter a wallet address to view portfolio data</p>
+                        </>
+                      ) : walletMode === 'demo' ? (
+                        <>
+                          <p className="text-xl mb-2">Demo Portfolio Loading...</p>
+                          <p className="text-sm">If this persists, refresh the page</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xl mb-2">No portfolio data found</p>
+                          <p className="text-sm mb-4">
+                            {walletMode === 'connected' 
+                              ? 'No portfolio found for your connected wallet' 
+                              : 'No portfolio found for this wallet address'}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            Wallet: {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-6)}` : 'Unknown'}
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   )
 }
 

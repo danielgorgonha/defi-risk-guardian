@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
@@ -29,7 +29,43 @@ export function Header() {
   const router = useRouter()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
   const { wallet, connectWallet, disconnectWallet, connectDemoWallet } = useWallet()
+  
+  // Determine actual user status based on multiple sources
+  const getActualUserStatus = () => {
+    // Check localStorage directly for demo mode (only in browser)
+    if (typeof window !== 'undefined') {
+      const savedIsDemoMode = localStorage.getItem('isDemoMode') === 'true'
+      const savedWalletMode = localStorage.getItem('walletMode')
+      
+      if (savedIsDemoMode || isDemoMode) {
+        return 'demo'
+      }
+    }
+    
+    if (isDemoMode) {
+      return 'demo'
+    }
+    
+    if (wallet.isConnected) {
+      return 'connected'
+    }
+    
+    return walletMode || 'disconnected'
+  }
+  
+  const actualUserStatus = getActualUserStatus()
   const toast = useToast()
+  
+  // Force sync walletMode when demo mode is detected
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedIsDemoMode = localStorage.getItem('isDemoMode') === 'true'
+      if (savedIsDemoMode && walletMode !== 'demo') {
+        console.log('🔄 Header: Syncing walletMode to demo')
+        setWalletMode('demo')
+      }
+    }
+  }, [walletMode, setWalletMode])
 
   const navigation = [
     { name: 'Dashboard', href: '/' },
@@ -51,7 +87,7 @@ export function Header() {
       setWalletMode('demo')
       setShowNavigation(true)
       
-      toast.showSuccess('Demo Mode Active', 'Demo mode activated! All API calls will now return demo data.')
+      // Note: Demo notification is handled by WalletContext.connectDemoWallet() to avoid duplicates
     } catch (error: any) {
       console.error('Demo activation failed:', error)
       toast.showError('Demo Error', 'Failed to activate demo mode')
@@ -154,20 +190,20 @@ export function Header() {
                     className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/10 transition-all duration-300 group"
                   >
                     <div className={`h-8 w-8 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-lg transition-all duration-300 ${
-                      walletMode === 'demo' ? 'bg-gradient-to-r from-orange-500 to-yellow-500' :
-                      walletMode === 'connected' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
-                      walletMode === 'tracked' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                      actualUserStatus === 'demo' ? 'bg-gradient-to-r from-orange-500 to-yellow-500' :
+                      actualUserStatus === 'connected' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                      actualUserStatus === 'tracked' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
                       'bg-gradient-to-r from-gray-500 to-gray-600'
                     }`}>
-                      {walletMode === 'demo' ? <Star className="h-4 w-4 text-white" /> :
-                       walletMode === 'connected' ? <Wallet className="h-4 w-4 text-white" /> :
-                       walletMode === 'tracked' ? <Eye className="h-4 w-4 text-white" /> :
+                      {actualUserStatus === 'demo' ? <Star className="h-4 w-4 text-white" /> :
+                       actualUserStatus === 'connected' ? <Wallet className="h-4 w-4 text-white" /> :
+                       actualUserStatus === 'tracked' ? <Eye className="h-4 w-4 text-white" /> :
                        <User className="h-4 w-4 text-white" />}
                     </div>
                     <span className="hidden sm:block text-sm font-medium text-white">
-                      {walletMode === 'demo' ? 'Demo User' : 
-                       walletMode === 'connected' ? 'Connected Wallet' :
-                       walletMode === 'tracked' ? 'Tracked Wallet' : 'User'}
+                      {actualUserStatus === 'demo' ? 'Demo User' : 
+                       actualUserStatus === 'connected' ? 'Connected Wallet' :
+                       actualUserStatus === 'tracked' ? 'Tracked Wallet' : 'User'}
                     </span>
                   </button>
 
@@ -179,14 +215,14 @@ export function Header() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs text-gray-500">Status</span>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            walletMode === 'demo' ? 'bg-orange-100 text-orange-600' :
-                            walletMode === 'connected' ? 'bg-green-100 text-green-600' :
-                            walletMode === 'tracked' ? 'bg-blue-100 text-blue-600' :
+                            actualUserStatus === 'demo' ? 'bg-orange-100 text-orange-600' :
+                            actualUserStatus === 'connected' ? 'bg-green-100 text-green-600' :
+                            actualUserStatus === 'tracked' ? 'bg-blue-100 text-blue-600' :
                             'bg-gray-100 text-gray-600'
                           }`}>
-                            {walletMode === 'demo' ? '✨ Demo Mode' :
-                             walletMode === 'connected' ? '🔗 Connected' :
-                             walletMode === 'tracked' ? '👁️ Tracking' : 'Disconnected'}
+                            {actualUserStatus === 'demo' ? '✨ Demo Mode' :
+                             actualUserStatus === 'connected' ? '🔗 Connected' :
+                             actualUserStatus === 'tracked' ? '👁️ Tracking' : 'Disconnected'}
                           </span>
                         </div>
                       </div>
@@ -229,18 +265,6 @@ export function Header() {
               <>
                 {/* Connect Wallet and Try Demo buttons */}
                 <WalletButton />
-                {/* Show Dashboard button if wallet is connected but navigation is not active */}
-                {wallet.isConnected && !showNavigation && (
-                  <button
-                    onClick={() => {
-                      setShowNavigation(true)
-                      toast.showSuccess('Dashboard Activated', 'Welcome to your portfolio dashboard!')
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-lg transition-all duration-300 animate-pulse"
-                  >
-                    Go to Dashboard
-                  </button>
-                )}
                 <button 
                   onClick={handleTryDemo}
                   disabled={isLoading}

@@ -22,6 +22,7 @@ import { useToast } from './components/common/ToastProvider'
 import { useNavigation } from './contexts/NavigationContext'
 import { useWalletStatus } from './hooks/useWalletStatus'
 import { useWallet } from './contexts/WalletContext'
+import { useDemoStateRestore } from './hooks/useDemoStateRestore'
 import { DemoModeBanner } from './components/common/DemoModeBanner'
 import { ConnectWalletModal } from './components/wallet/ConnectWalletModal'
 import { api, Portfolio, RiskAnalysis, Alert } from './utils/api'
@@ -53,6 +54,7 @@ export default function Home() {
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
   const { canLoadData, walletAddress: currentWalletAddress } = useWalletStatus()
   const { wallet, connectDemoWallet } = useWallet()
+  const { isDemoActive } = useDemoStateRestore()
 
   // Demo data
   const demoWalletAddress = 'GDEMOTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJK'
@@ -84,6 +86,46 @@ export default function Home() {
       localStorage.removeItem('walletAddress')
     }
   }, [isDemoMode])
+
+  // Restore demo mode state on page refresh
+  useEffect(() => {
+    // Check localStorage directly for demo state
+    const savedIsDemoMode = localStorage.getItem('isDemoMode') === 'true'
+    const savedWalletMode = localStorage.getItem('walletMode')
+    
+    if (savedIsDemoMode && savedWalletMode === 'demo' && !showNavigation) {
+      console.log('🔄 Restoring demo mode state after page refresh')
+      setShowNavigation(true)
+      setWalletAddress(demoWalletAddress)
+      localStorage.setItem('walletAddress', demoWalletAddress)
+      // Load demo portfolio data
+      setTimeout(async () => {
+        await loadPortfolioData()
+      }, 100)
+    }
+  }, [isDemoMode, walletMode, showNavigation])
+
+  // Additional check for demo state restoration
+  useEffect(() => {
+    const savedIsDemoMode = localStorage.getItem('isDemoMode') === 'true'
+    const savedWalletMode = localStorage.getItem('walletMode')
+    
+    // If demo mode is saved but not active in state, force restoration
+    if (savedIsDemoMode && !isDemoMode) {
+      console.log('🔄 Force restoring demo mode state')
+      setIsDemoMode(true)
+      setWalletMode('demo')
+      setShowNavigation(true)
+      setWalletAddress(demoWalletAddress)
+      localStorage.setItem('walletAddress', demoWalletAddress)
+      localStorage.setItem('walletMode', JSON.stringify('demo'))
+      
+      // Load demo portfolio data
+      setTimeout(async () => {
+        await loadPortfolioData()
+      }, 200)
+    }
+  }, [])
 
   // Auto-activate navigation when wallet connects via WalletContext
   useEffect(() => {
@@ -189,7 +231,7 @@ export default function Home() {
       setIsDemoMode(true) // Enable demo mode
       setShowNavigation(true) // Show navigation menus
       setWalletMode('demo') // Mark as demo mode
-      toast.showSuccess('Demo Mode Activated', 'Loading demo data from fixtures...')
+      // Note: Demo notification is handled by WalletContext.connectDemoWallet()
       
       // Load the demo data - backend will return consolidated fixtures data
       setTimeout(async () => {

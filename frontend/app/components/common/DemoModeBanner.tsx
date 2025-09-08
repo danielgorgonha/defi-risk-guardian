@@ -10,7 +10,7 @@ import { useToast } from './ToastProvider'
 export function DemoModeBanner() {
   const router = useRouter()
   const { isDemoMode, setShowNavigation } = useNavigation()
-  const { disableDemoMode } = useWallet()
+  const { disableDemoMode, disconnectWallet } = useWallet()
   const { canLoadData } = useWalletStatus()
   const toast = useToast()
 
@@ -19,17 +19,24 @@ export function DemoModeBanner() {
   }
 
   const handleResetDemo = () => {
-    // Use WalletContext to properly exit demo mode
+    // Use the same logic as Sign Out in Header.tsx
+    // Clear all demo-related state
     disableDemoMode()
     
     // Clear navigation state
     localStorage.removeItem('showNavigation')
     setShowNavigation(false)
     
-    // Redirect to main page (dashboard route) to show wallet connection screen
-    router.push('/')
+    // Disconnect wallet silently (no duplicate notifications)
+    disconnectWallet(true)
     
-    // No need for additional notification - WalletContext handles it
+    // Show single success message
+    toast.showSuccess('Demo Reset', 'Demo session ended successfully!')
+    
+    // Force page refresh to ensure clean state
+    setTimeout(() => {
+      window.location.href = '/'
+    }, 1000)
   }
 
   return (

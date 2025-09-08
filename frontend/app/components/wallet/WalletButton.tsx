@@ -1,12 +1,16 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Wallet, ChevronDown, Copy, ExternalLink, LogOut } from 'lucide-react'
+import { Wallet, ChevronDown, Copy, ExternalLink, LogOut, ArrowRight } from 'lucide-react'
 import { useWallet } from '../../contexts/WalletContext'
+import { useNavigation } from '../../contexts/NavigationContext'
+import { useToast } from '../common/ToastProvider'
 import { ConnectWalletModal } from './ConnectWalletModal'
 
 export function WalletButton() {
   const { wallet, disconnectWallet } = useWallet()
+  const { showNavigation, setShowNavigation } = useNavigation()
+  const toast = useToast()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
 
@@ -30,9 +34,10 @@ export function WalletButton() {
       }
       
       await navigator.clipboard.writeText(address || '')
-      // You could add a toast notification here
+      toast.showSuccess('Address Copied', 'Wallet address copied to clipboard!')
     } catch (error) {
       console.error('Failed to copy address:', error)
+      toast.showError('Copy Failed', 'Failed to copy address to clipboard')
     }
   }
 
@@ -43,8 +48,15 @@ export function WalletButton() {
       address = (address as any).address
     }
     
-    const url = `https://stellar.expert/explorer/testnet/account/${address}`
+    // Use mainnet for real wallets, testnet for demo
+    const network = wallet.isDemoMode ? 'testnet' : 'public'
+    const url = `https://stellar.expert/explorer/${network}/account/${address}`
     window.open(url, '_blank')
+  }
+
+  const handleGoToDashboard = () => {
+    setShowNavigation(true)
+    setShowDropdown(false)
   }
 
   if (!wallet.isConnected) {
@@ -72,9 +84,9 @@ export function WalletButton() {
         className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
       >
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+          <Wallet className="h-4 w-4 text-gray-600" />
           <span className="text-sm font-medium text-gray-700">
-            {formatAddress(wallet.address)}
+            {wallet.isDemoMode ? 'Demo Wallet' : 'Connected Wallet'}
           </span>
         </div>
         <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -97,7 +109,7 @@ export function WalletButton() {
             <div className="text-xs text-gray-500 mb-1">Address</div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-mono text-gray-900 break-all">
-                {formatAddress(wallet.address)}
+                {wallet.address}
               </span>
               <button
                 onClick={copyAddress}
@@ -111,6 +123,15 @@ export function WalletButton() {
 
           {/* Actions */}
           <div className="py-2">
+            {!showNavigation && (
+              <button
+                onClick={handleGoToDashboard}
+                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors"
+              >
+                <ArrowRight className="h-4 w-4" />
+                <span>Go to Dashboard</span>
+              </button>
+            )}
             <button
               onClick={openInStellarExpert}
               className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"

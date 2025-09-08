@@ -119,6 +119,22 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     if (typeof window !== 'undefined') {
       const storedDemoMode = localStorage.getItem('isDemoMode') === 'true'
       setIsDemoMode(storedDemoMode)
+      
+      // If demo mode is stored, also restore wallet state
+      if (storedDemoMode) {
+        const savedWallet = localStorage.getItem('walletInfo')
+        if (savedWallet) {
+          try {
+            const parsedWallet = JSON.parse(savedWallet)
+            if (parsedWallet.isDemoMode) {
+              setWallet(parsedWallet)
+              console.log('🔄 Restored demo wallet state from localStorage')
+            }
+          } catch (error) {
+            console.error('Error restoring demo wallet state:', error)
+          }
+        }
+      }
     }
   }, [])
 
@@ -546,7 +562,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       saveWalletToStorage(newWallet)
       enableDemoMode()
 
-      toast.showSuccess('Demo Wallet Connected', 'Successfully connected to demo portfolio!')
+      toast.showSuccess('Demo Mode Activated', 'Demo portfolio connected! All features are now available with sample data.')
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to connect demo wallet'
       setError(errorMessage)
@@ -564,7 +580,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       if (!wasAlreadyInDemo) {
         localStorage.setItem('isDemoMode', 'true')
         setIsDemoMode(true)
-        toast.showSuccess('Demo Mode', 'Demo mode activated! All API calls will now return demo data.')
+        // Note: Demo notification is handled by connectDemoWallet() to avoid duplicates
       } else {
         // Just update state without notification
         setIsDemoMode(true)

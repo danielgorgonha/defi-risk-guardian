@@ -33,7 +33,24 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       setIsDemoMode(isDemo)
     }
     if (savedWalletMode !== null) {
-      setWalletMode(savedWalletMode as 'disconnected' | 'connected' | 'demo' | 'tracked')
+      try {
+        const parsedWalletMode = JSON.parse(savedWalletMode)
+        setWalletMode(parsedWalletMode as 'disconnected' | 'connected' | 'demo' | 'tracked')
+      } catch (error) {
+        // If parsing fails, treat as string
+        setWalletMode(savedWalletMode as 'disconnected' | 'connected' | 'demo' | 'tracked')
+      }
+    }
+    
+    // If demo mode is active, ensure navigation is shown and walletMode is set
+    if (savedIsDemoMode === 'true') {
+      setShowNavigation(true)
+      // Ensure walletMode is set to 'demo' if not already set
+      if (savedWalletMode !== 'demo') {
+        setWalletMode('demo')
+        localStorage.setItem('walletMode', JSON.stringify('demo'))
+      }
+      console.log('🔄 Restored demo navigation state from localStorage')
     }
   }, [])
 
