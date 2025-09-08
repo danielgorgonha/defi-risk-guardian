@@ -29,7 +29,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     }
     if (savedIsDemoMode !== null) {
       // Handle both string 'true' and boolean true
-      const isDemo = savedIsDemoMode === 'true' || savedIsDemoMode === true
+      const isDemo = savedIsDemoMode === 'true' || savedIsDemoMode === 'true'
       setIsDemoMode(isDemo)
     }
     if (savedWalletMode !== null) {

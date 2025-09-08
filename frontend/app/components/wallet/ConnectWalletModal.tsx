@@ -132,7 +132,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
   const handleConnect = async (type: 'freighter' | 'xbull' | 'ledger' | 'manual', address?: string) => {
     setIsConnecting(type)
     try {
-      await connectWallet(type, address)
+      await connectWallet(type, wallet.network)
       onClose()
     } catch (error) {
       // Error is handled by the context
@@ -144,7 +144,15 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (manualAddress.trim()) {
-      await handleConnect('manual', manualAddress.trim())
+      setIsConnecting('manual')
+      try {
+        await connectWallet(manualAddress.trim(), wallet.network)
+        onClose()
+      } catch (error) {
+        // Error is handled by the context
+      } finally {
+        setIsConnecting(null)
+      }
     }
   }
 
