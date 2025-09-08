@@ -11,8 +11,9 @@ from app.models.database import User, Portfolio, PriceHistory
 from app.services.stellar_oracle import stellar_oracle_client
 from .models import PortfolioCreate, AssetCreate, AssetUpdate, SyncRequest
 from .validators import validate_stellar_address, validate_asset_exists
-from .utils import discover_wallet_assets, calculate_simple_risk_score, format_asset_data, get_mock_price
+from .utils import discover_wallet_assets, calculate_simple_risk_score, format_asset_data
 from datetime import datetime
+from app.api.v1.alerts import create_sample_alerts
 
 
 class PortfolioService:
@@ -27,7 +28,7 @@ class PortfolioService:
             # Check if user already exists
             existing_user = self.db.query(User).filter(
                 User.wallet_address == portfolio_data.wallet_address
-            ).first()
+            ).first()            
             
             if existing_user:
                 return {
@@ -48,20 +49,43 @@ class PortfolioService:
             discovered_assets = await discover_wallet_assets(portfolio_data.wallet_address)
             assets_added = 0
             
-            # Get current prices for discovered assets
+            # If no assets discovered, add some mock assets for demonstration
+            if not discovered_assets:
+                print(f"INFO: No assets discovered for {portfolio_data.wallet_address}, adding mock assets")
+                discovered_assets = [
+                    {
+                        'asset_code': 'XLM',
+                        'asset_issuer': None,
+                        'balance': 1000.0,
+                        'target_allocation': 0.0,
+                        'status': 'owned',
+                        'price_usd': 0.12  # Set mock price directly
+                    },
+                    {
+                        'asset_code': 'USDC',
+                        'asset_issuer': 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+                        'balance': 500.0,
+                        'target_allocation': 0.0,
+                        'status': 'owned',
+                        'price_usd': 1.0  # Set mock price directly
+                    }
+                ]
+            
+            # Get current prices for discovered assets (only if not already set)
             for asset_data in discovered_assets:
-                try:
-                    price_usd = await stellar_oracle_client.get_asset_price(
-                        asset_data['asset_code'], 
-                        asset_data['asset_issuer']
-                    )
-                    if price_usd:
-                        asset_data['price_usd'] = price_usd
-                    else:
+                if 'price_usd' not in asset_data or asset_data['price_usd'] is None:
+                    try:
+                        price_usd = await stellar_oracle_client.get_asset_price(
+                            asset_data['asset_code'], 
+                            asset_data['asset_issuer']
+                        )
+                        if price_usd:
+                            asset_data['price_usd'] = price_usd
+                        else:
+                            asset_data['price_usd'] = 0.0
+                    except Exception as e:
+                        print(f"Warning: Could not get price for {asset_data['asset_code']}: {str(e)}")
                         asset_data['price_usd'] = 0.0
-                except Exception as e:
-                    print(f"Warning: Could not get price for {asset_data['asset_code']}: {str(e)}")
-                    asset_data['price_usd'] = 0.0
             
             for asset_data in discovered_assets:
                 if asset_data['balance'] > 0:  # Only add assets with balance > 0
@@ -93,6 +117,12 @@ class PortfolioService:
             
             self.db.commit()
             
+            # Create sample alerts for the new user
+            try:
+                await create_sample_alerts(portfolio_data.wallet_address, self.db)
+            except Exception as e:
+                print(f"Warning: Could not create sample alerts: {str(e)}")
+            
             return {
                 "message": "User created successfully",
                 "user_id": str(new_user.id),
@@ -110,6 +140,12 @@ class PortfolioService:
         
         user = self.db.query(User).filter(User.wallet_address == wallet_address).first()
         if not user:
+            # Log all users for debugging
+            all_users = self.db.query(User).all()
+            print(f"DEBUG: Looking for wallet {wallet_address}")
+            print(f"DEBUG: Found {len(all_users)} users in database:")
+            for u in all_users:
+                print(f"  - {u.wallet_address} (ID: {u.id})")
             raise ValueError("User not found")
         
         assets = self.db.query(Portfolio).filter(Portfolio.user_id == user.id).all()
@@ -121,11 +157,11 @@ class PortfolioService:
                 price_usd = await stellar_oracle_client.get_asset_price(
                     asset.asset_code, asset.asset_issuer
                 )
-                # If price is 0 or None, use mock prices for demo
+                # If no price available, set to 0
                 if price_usd is None or price_usd == 0.0:
-                    price_usd = get_mock_price(asset.asset_code)
+                    price_usd = 0.0
             except Exception:
-                price_usd = get_mock_price(asset.asset_code)
+                price_usd = 0.0
             
             asset_data = format_asset_data(asset, price_usd)
             assets_data.append(asset_data)

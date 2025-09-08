@@ -8,18 +8,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
 import os
+import logging
 from datetime import datetime
 from sqlalchemy import text
 from dotenv import load_dotenv
 
 from app.core.config import settings
-from app.api.v1 import portfolio, risk, alerts, rebalance, demo
+from app.api.v1 import portfolio, risk, alerts, rebalance
 from app.core.database import engine, Base
 from app.services.stellar_oracle import StellarOracleClient
 from app.services.cache import cache_service
+from app.middleware import DemoMiddleware
 
 # Load environment variables
 load_dotenv()
+
+# Setup logging
+logger = logging.getLogger(__name__)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -42,12 +47,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Demo detection middleware
+app.add_middleware(DemoMiddleware)
+
 # Include API routers
 app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["portfolio"])
 app.include_router(risk.router, prefix="/api/v1/risk", tags=["risk"])
 app.include_router(alerts.router, prefix="/api/v1/alerts", tags=["alerts"])
 app.include_router(rebalance.router, prefix="/api/v1/rebalance", tags=["rebalance"])
-app.include_router(demo.router, prefix="/api/v1/demo", tags=["demo"])
 
 @app.get("/")
 async def root():

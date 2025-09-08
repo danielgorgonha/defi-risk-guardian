@@ -5,11 +5,12 @@ This module contains all the FastAPI endpoints for portfolio operations,
 organized and separated from business logic for better maintainability.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 from app.core.database import get_db
 from app.services.stellar_oracle import stellar_oracle_client
+from app.utils.demo_utils import is_demo_mode, log_demo_action, demo_data_provider
 from .models import PortfolioCreate, AssetCreate, AssetUpdate, SyncRequest
 from .services import PortfolioService
 
@@ -41,12 +42,23 @@ async def get_supported_assets():
 
 
 @router.get("/{wallet_address}")
-async def get_portfolio(wallet_address: str, db: Session = Depends(get_db)):
-    """Get portfolio data for a user"""
+async def get_portfolio(wallet_address: str, request: Request, db: Session = Depends(get_db)):
+    """Get portfolio data for a user - returns consolidated data in demo mode"""
     try:
+        # Log demo action if in demo mode
+        log_demo_action(request, "get_portfolio", {"wallet_address": wallet_address})
+        
+        # Demo mode: return consolidated fixture data for all frontend screens
+        if is_demo_mode(request):
+            # Return all data needed by frontend in one response
+            # This includes portfolio, risk_analysis, alerts, rebalance_suggestions, price_history
+            return demo_data_provider.get_consolidated_data()
+        
+        # Regular mode: use database service
         service = PortfolioService(db)
         result = await service.get_portfolio(wallet_address)
         return result
+        
     except ValueError as e:
         if "Invalid wallet address" in str(e):
             raise HTTPException(status_code=400, detail=str(e))

@@ -2,17 +2,21 @@
 Risk analysis API endpoints
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from app.core.database import get_db
 from app.models.database import User, Portfolio, RiskMetrics
 from app.services.stellar_oracle import stellar_oracle_client
 from app.services.ai_portfolio_analyzer import ai_analyzer
+from app.utils.demo_utils import is_demo_mode, log_demo_action, demo_data_provider
 from pydantic import BaseModel, Field
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -67,10 +71,18 @@ class AIAnalysisResponse(BaseModel):
 @router.post("/analyze", response_model=RiskAnalysisResponse)
 async def analyze_portfolio_risk(
     request: RiskAnalysisRequest, 
+    http_request: Request,
     db: Session = Depends(get_db)
 ):
     """Perform comprehensive risk analysis on portfolio"""
     try:
+        # Log demo action if in demo mode
+        log_demo_action(http_request, "analyze_risk", {"wallet_address": request.wallet_address})
+        
+        # Demo mode: return fixture risk analysis
+        if is_demo_mode(http_request):
+            risk_data = demo_data_provider.get_risk_analysis()
+            return RiskAnalysisResponse(**risk_data)
         # Get user and portfolio
         user = db.query(User).filter(User.wallet_address == request.wallet_address).first()
         if not user:
@@ -79,7 +91,10 @@ async def analyze_portfolio_risk(
         portfolios = db.query(Portfolio).filter(Portfolio.user_id == user.id).all()
         
         if not portfolios:
-            raise HTTPException(status_code=404, detail="No portfolio found")
+            # If no portfolio found, return mock data instead of 404
+            logger.info(f"No portfolio found for user {user.wallet_address}, returning mock risk data")
+            risk_data = demo_data_provider.get_risk_analysis()
+            return RiskAnalysisResponse(**risk_data)
         
         # Prepare asset data for AI analysis
         portfolio_assets = []
@@ -139,20 +154,39 @@ async def analyze_portfolio_risk(
 
 @router.post("/ai-analysis", response_model=AIAnalysisResponse)
 async def comprehensive_ai_analysis(
-    request: RiskAnalysisRequest,
+    request_data: RiskAnalysisRequest,
+    http_request: Request,
     db: Session = Depends(get_db)
 ):
     """Perform comprehensive AI analysis including risk, predictions, and recommendations"""
     try:
+        # Debug logging
+        logger.info(f"AI Analysis endpoint called with wallet: {request_data.wallet_address}")
+        logger.info(f"Request state is_demo_mode: {getattr(http_request.state, 'is_demo_mode', 'NOT SET')}")
+        
+        # Log demo action
+        log_demo_action(http_request, "comprehensive_ai_analysis", {"wallet_address": request_data.wallet_address})
+        
+        # Demo mode: return fixture data
+        if is_demo_mode(http_request):
+            logger.info("Demo mode detected - returning fixture data")
+            ai_data = demo_data_provider.get_ai_analysis_data()
+            return AIAnalysisResponse(**ai_data)
+        
+        logger.info("Not in demo mode - proceeding with normal logic")
+        
         # Get user and portfolio
-        user = db.query(User).filter(User.wallet_address == request.wallet_address).first()
+        user = db.query(User).filter(User.wallet_address == request_data.wallet_address).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
         portfolios = db.query(Portfolio).filter(Portfolio.user_id == user.id).all()
         
         if not portfolios:
-            raise HTTPException(status_code=404, detail="No portfolio found")
+            # If no portfolio found, return mock data instead of 404
+            logger.info(f"No portfolio found for user {user.wallet_address}, returning mock data")
+            ai_data = demo_data_provider.get_ai_analysis_data()
+            return AIAnalysisResponse(**ai_data)
         
         # Prepare asset data for AI analysis
         portfolio_assets = []
@@ -474,15 +508,21 @@ def generate_risk_recommendations(metrics: Dict[str, float], risk_tolerance: flo
 def save_risk_metrics(db: Session, user_id: int, metrics: Dict[str, float]):
     """Save risk metrics to database"""
     try:
+        # Convert numpy types to Python float to avoid database serialization issues
+        def convert_to_float(value):
+            if hasattr(value, 'item'):  # numpy scalar
+                return float(value.item())
+            return float(value)
+        
         risk_metrics = RiskMetrics(
             user_id=user_id,
-            portfolio_value=metrics.get("portfolio_value", 0),
-            var_95=metrics["var_95"],
-            var_99=metrics["var_99"],
-            volatility=metrics["volatility"],
-            sharpe_ratio=metrics["sharpe_ratio"],
-            beta=metrics["beta"],
-            max_drawdown=metrics["max_drawdown"]
+            portfolio_value=convert_to_float(metrics.get("portfolio_value", 0)),
+            var_95=convert_to_float(metrics["var_95"]),
+            var_99=convert_to_float(metrics["var_99"]),
+            volatility=convert_to_float(metrics["volatility"]),
+            sharpe_ratio=convert_to_float(metrics["sharpe_ratio"]),
+            beta=convert_to_float(metrics["beta"]),
+            max_drawdown=convert_to_float(metrics["max_drawdown"])
         )
         
         db.add(risk_metrics)

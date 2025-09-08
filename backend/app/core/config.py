@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
     
     # Stellar
-    STELLAR_NETWORK: str = "testnet"  # testnet or mainnet
-    HORIZON_URL: str = "https://horizon-testnet.stellar.org"
+    STELLAR_NETWORK: str = "mainnet"  # testnet or mainnet
+    HORIZON_URL: str = "https://horizon-mainnet.stellar.org"
     # Reflector Oracle API
     REFLECTOR_API_URL: str = "https://reflector-api.stellar.org"
     REFLECTOR_API_KEY: str = ""        
