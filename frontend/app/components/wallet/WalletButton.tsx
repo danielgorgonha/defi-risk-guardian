@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Wallet, ChevronDown, Copy, ExternalLink, LogOut, ArrowRight } from 'lucide-react'
 import { useWallet } from '../../contexts/WalletContext'
@@ -15,6 +15,12 @@ export function WalletButton() {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Fix hydration mismatch
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   const formatAddress = (address: string | undefined | null | any) => {
     // Handle object format {address: "..."}
@@ -60,6 +66,16 @@ export function WalletButton() {
     setShowNavigation(true)
     setShowDropdown(false)
     router.push('/dashboard')
+  }
+
+  // Show loading state during hydration to prevent mismatch
+  if (!isHydrated) {
+    return (
+      <div className="flex items-center space-x-2 px-4 py-2 bg-gray-200 rounded-lg animate-pulse">
+        <div className="h-4 w-4 bg-gray-300 rounded"></div>
+        <div className="h-4 w-20 bg-gray-300 rounded"></div>
+      </div>
+    )
   }
 
   if (!wallet.isConnected) {

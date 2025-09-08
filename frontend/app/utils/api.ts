@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { mockData } from './mockData'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
@@ -133,10 +134,21 @@ export interface RebalanceOrder {
   target_allocation: number
 }
 
+// Helper function to check if demo mode is active
+const isDemoMode = (): boolean => {
+  if (typeof window === 'undefined') return false
+  return localStorage.getItem('isDemoMode') === 'true'
+}
+
 // API functions
 export const api = {
   // Portfolio endpoints
   createUser: async (walletAddress: string) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock user creation')
+      return { success: true, message: 'Demo user created', user_id: 'demo' }
+    }
+    
     const response = await apiClient.post('/api/v1/portfolio/users', {
       wallet_address: walletAddress,
       risk_tolerance: 0.5
@@ -145,6 +157,11 @@ export const api = {
   },
 
   getPortfolio: async (walletAddress: string): Promise<Portfolio> => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock portfolio data')
+      return mockData.getPortfolio()
+    }
+    
     const response = await apiClient.get(`/api/v1/portfolio/${walletAddress}`)
     return response.data
   },
@@ -155,11 +172,26 @@ export const api = {
     balance: number
     target_allocation: number
   }) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock asset addition')
+      return { success: true, message: 'Demo asset added', asset_id: Math.floor(Math.random() * 1000) }
+    }
+    
     const response = await apiClient.post(`/api/v1/portfolio/${walletAddress}/assets`, asset)
     return response.data
   },
 
   getAssetPrice: async (walletAddress: string, assetCode: string, assetIssuer?: string) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock asset price')
+      const prices = mockData.getMockPrices()
+      return { 
+        asset_code: assetCode, 
+        price_usd: prices[assetCode as keyof typeof prices] || 1.0,
+        timestamp: new Date().toISOString()
+      }
+    }
+    
     const response = await apiClient.get(`/api/v1/portfolio/${walletAddress}/assets/${assetCode}/price`, {
       params: { asset_issuer: assetIssuer }
     })
@@ -168,6 +200,11 @@ export const api = {
 
   // Risk analysis endpoints
   analyzeRisk: async (walletAddress: string): Promise<RiskAnalysis> => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock risk analysis')
+      return mockData.getRiskAnalysis()
+    }
+    
     const response = await apiClient.post('/api/v1/risk/ai-analysis', {
       wallet_address: walletAddress,
       confidence_level: 0.95
@@ -176,12 +213,22 @@ export const api = {
   },
 
   getRiskMetrics: async (walletAddress: string) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock risk metrics')
+      return mockData.getRiskAnalysis()
+    }
+    
     const response = await apiClient.get(`/api/v1/risk/${walletAddress}/metrics`)
     return response.data
   },
 
   // AI analysis endpoint
   aiAnalysis: async (walletAddress: string) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock AI analysis')
+      return mockData.getAIAnalysis()
+    }
+    
     const response = await apiClient.post('/api/v1/risk/ai-analysis', {
       wallet_address: walletAddress
     })
@@ -190,11 +237,23 @@ export const api = {
 
   // Alerts endpoints
   getAlerts: async (walletAddress: string): Promise<Alert[]> => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock alerts')
+      const alertsData = mockData.getAlerts()
+      return alertsData.alerts
+    }
+    
     const response = await apiClient.get(`/api/v1/alerts/${walletAddress}`)
     return response.data
   },
 
   getActiveAlerts: async (walletAddress: string): Promise<Alert[]> => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock active alerts')
+      const alertsData = mockData.getAlerts()
+      return alertsData.alerts.filter(alert => alert.is_active)
+    }
+    
     const response = await apiClient.get(`/api/v1/alerts/${walletAddress}/active`)
     return response.data
   },
@@ -204,21 +263,51 @@ export const api = {
     severity: string
     message: string
   }) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock alert creation')
+      return { success: true, message: 'Demo alert created', alert_id: Math.floor(Math.random() * 1000) }
+    }
+    
     const response = await apiClient.post(`/api/v1/alerts/${walletAddress}`, alert)
     return response.data
   },
 
   resolveAlert: async (alertId: number) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock alert resolution')
+      return { success: true, message: 'Demo alert resolved' }
+    }
+    
     const response = await apiClient.patch(`/api/v1/alerts/${alertId}/resolve`)
     return response.data
   },
 
   deleteAlert: async (alertId: number) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock alert deletion')
+      return { success: true, message: 'Demo alert deleted' }
+    }
+    
     const response = await apiClient.delete(`/api/v1/alerts/${alertId}`)
     return response.data
   },
 
   getAlertStats: async (walletAddress: string) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock alert stats')
+      const alertsData = mockData.getAlerts()
+      return {
+        total_alerts: alertsData.alerts.length,
+        active_alerts: alertsData.total_active,
+        resolved_alerts: alertsData.total_resolved,
+        severity_breakdown: {
+          high: alertsData.alerts.filter(a => a.severity === 'high').length,
+          medium: alertsData.alerts.filter(a => a.severity === 'medium').length,
+          low: alertsData.alerts.filter(a => a.severity === 'low').length
+        }
+      }
+    }
+    
     const response = await apiClient.get(`/api/v1/alerts/${walletAddress}/stats`)
     return response.data
   },
@@ -228,6 +317,11 @@ export const api = {
     threshold?: number
     max_slippage?: number
   }): Promise<RebalanceSuggestion> => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock rebalancing suggestions')
+      return mockData.getRebalanceSuggestions()
+    }
+    
     const response = await apiClient.post('/api/v1/rebalance/suggest', {
       wallet_address: walletAddress,
       threshold: options?.threshold || 0.05,
@@ -237,6 +331,16 @@ export const api = {
   },
 
   executeRebalancing: async (walletAddress: string, orders: RebalanceOrder[]) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock rebalancing execution')
+      return { 
+        success: true, 
+        message: 'Demo rebalancing executed', 
+        transaction_id: `demo_tx_${Math.floor(Math.random() * 10000)}`,
+        orders_executed: orders.length
+      }
+    }
+    
     const response = await apiClient.post('/api/v1/rebalance/execute', {
       wallet_address: walletAddress,
       orders
@@ -245,18 +349,64 @@ export const api = {
   },
 
   getRebalanceHistory: async (walletAddress: string) => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock rebalancing history')
+      return {
+        rebalances: [
+          {
+            id: 1,
+            executed_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+            orders_count: 3,
+            total_cost: 12.50,
+            risk_improvement: 5.2,
+            status: 'completed'
+          },
+          {
+            id: 2,
+            executed_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
+            orders_count: 2,
+            total_cost: 8.75,
+            risk_improvement: 3.1,
+            status: 'completed'
+          }
+        ],
+        total_rebalances: 2
+      }
+    }
+    
     const response = await apiClient.get(`/api/v1/rebalance/${walletAddress}/history`)
     return response.data
   },
 
   // Health check
   healthCheck: async () => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock health check')
+      return { 
+        status: 'healthy', 
+        demo_mode: true, 
+        timestamp: new Date().toISOString() 
+      }
+    }
+    
     const response = await apiClient.get('/health')
     return response.data
   },
 
+  // Additional utility functions for demo mode
+  getSupportedAssets: async () => {
+    if (isDemoMode()) {
+      console.log('🎭 Demo Mode: Returning mock supported assets')
+      return mockData.getSupportedAssets()
+    }
+    
+    // This would be a real API call if not in demo mode
+    const response = await apiClient.get('/api/v1/portfolio/supported-assets')
+    return response.data
+  },
+
   // Demo mode is now handled automatically via localStorage flag
-  // No specific demo endpoints needed
+  // All endpoints check isDemoMode() and return mock data when true
 }
 
 export default api
