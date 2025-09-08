@@ -13,7 +13,8 @@ import {
   Bell,
   Wallet,
   Eye,
-  Star
+  Star,
+  ArrowRight
 } from 'lucide-react'
 import { useNavigation } from '../../contexts/NavigationContext'
 import { useWallet } from '../../contexts/WalletContext'
@@ -26,10 +27,16 @@ export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
   const { wallet, connectWallet, disconnectWallet, connectDemoWallet } = useWallet()
+
+  // Fix hydration mismatch by ensuring client-side rendering
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
   
   // Determine actual user status based on multiple sources
   const getActualUserStatus = () => {
@@ -69,7 +76,7 @@ export function Header() {
   }, [walletMode, setWalletMode])
 
   const navigation = [
-    { name: 'Dashboard', href: '/' },
+    { name: 'Dashboard', href: '/dashboard' },
     { name: 'Portfolio', href: '/portfolio' },
     { name: 'Alerts', href: '/alerts' },
     { name: 'Settings', href: '/settings' },
@@ -87,6 +94,9 @@ export function Header() {
       setIsDemoMode(true)
       setWalletMode('demo')
       setShowNavigation(true)
+      
+      // Redirect to dashboard
+      router.push('/dashboard')
       
       // Note: Demo notification is handled by WalletContext.connectDemoWallet() to avoid duplicates
     } catch (error: any) {
@@ -260,15 +270,48 @@ export function Header() {
               </>
             ) : (
               <>
-                {/* Connect Wallet and Try Demo buttons */}
-                <WalletButton />
-                <button 
-                  onClick={handleTryDemo}
-                  disabled={isLoading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all duration-300"
-                >
-                  {isLoading ? 'Loading...' : 'Try Demo'}
-                </button>
+                {/* Only render client-side to avoid hydration mismatch */}
+                {isClient && (wallet.isConnected || isDemoMode) && pathname === '/' ? (
+                  <>
+                    {/* Show connected wallet with integrated Go to Dashboard button */}
+                    <button
+                      onClick={() => router.push('/dashboard')}
+                      className="flex items-center space-x-3 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-300 group"
+                    >
+                      <div className="flex items-center space-x-2 text-white">
+                        <div className={`h-6 w-6 rounded-full flex items-center justify-center ${
+                          actualUserStatus === 'demo' ? 'bg-gradient-to-r from-orange-500 to-yellow-500' :
+                          actualUserStatus === 'connected' ? 'bg-gradient-to-r from-green-500 to-emerald-500' :
+                          actualUserStatus === 'tracked' ? 'bg-gradient-to-r from-blue-500 to-cyan-500' :
+                          'bg-gradient-to-r from-gray-500 to-gray-600'
+                        }`}>
+                          {actualUserStatus === 'demo' ? <Star className="h-3 w-3 text-white" /> :
+                           actualUserStatus === 'connected' ? <Wallet className="h-3 w-3 text-white" /> :
+                           actualUserStatus === 'tracked' ? <Eye className="h-3 w-3 text-white" /> :
+                           <User className="h-3 w-3 text-white" />}
+                        </div>
+                        <span className="text-sm font-medium">
+                          {actualUserStatus === 'demo' ? 'Demo Mode' : 
+                           actualUserStatus === 'connected' ? 'Connected' :
+                           actualUserStatus === 'tracked' ? 'Tracking' : 'User'}
+                        </span>
+                      </div>
+                      <ArrowRight className="h-4 w-4 text-white group-hover:translate-x-1 transition-transform duration-200" />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Connect Wallet and Try Demo buttons */}
+                    <WalletButton />
+                    <button 
+                      onClick={handleTryDemo}
+                      disabled={isLoading}
+                      className="px-4 py-2 text-sm font-medium text-white bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all duration-300"
+                    >
+                      {isLoading ? 'Loading...' : 'Try Demo'}
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Wallet, ChevronDown, Copy, ExternalLink, LogOut, ArrowRight } from 'lucide-react'
 import { useWallet } from '../../contexts/WalletContext'
 import { useNavigation } from '../../contexts/NavigationContext'
@@ -11,6 +12,7 @@ export function WalletButton() {
   const { wallet, disconnectWallet } = useWallet()
   const { showNavigation, setShowNavigation } = useNavigation()
   const toast = useToast()
+  const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
 
@@ -57,6 +59,7 @@ export function WalletButton() {
   const handleGoToDashboard = () => {
     setShowNavigation(true)
     setShowDropdown(false)
+    router.push('/dashboard')
   }
 
   if (!wallet.isConnected) {
