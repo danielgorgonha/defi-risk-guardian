@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { 
   Shield, 
   TrendingUp, 
@@ -11,7 +12,8 @@ import {
   Zap,
   Twitter,
   MessageCircle,
-  Github
+  Github,
+  LogOut
 } from 'lucide-react'
 import { useToast } from './components/common/ToastProvider'
 import { useNavigation } from './contexts/NavigationContext'
@@ -25,7 +27,8 @@ export default function Home() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const toast = useToast()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
-  const { wallet, connectDemoWallet } = useWallet()
+  const { wallet, connectDemoWallet, disconnectWallet } = useWallet()
+  const router = useRouter()
 
   // Demo data
   const demoWalletAddress = 'GDEMOTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJK'
@@ -93,6 +96,28 @@ export default function Home() {
     }
   }
 
+  const handleExitDemo = () => {
+    // Clear localStorage
+    localStorage.removeItem('showNavigation')
+    localStorage.removeItem('isDemoMode')
+    localStorage.removeItem('walletAddress')
+    localStorage.removeItem('walletMode')
+    
+    // Reset all states
+    setIsDemoMode(false)
+    setShowNavigation(false)
+    setWalletMode('disconnected')
+    
+    // Disconnect wallet silently (no duplicate notifications)
+    disconnectWallet(true)
+    
+    // Show success message
+    toast.showSuccess('Demo Mode Exited', 'You have exited demo mode successfully!')
+    
+    // Redirect to landing page (refresh current page)
+    router.push('/')
+  }
+
   const features = [
     {
       icon: Shield,
@@ -131,6 +156,26 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Demo Mode Indicator */}
+        {isDemoMode && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6 mt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Star className="h-5 w-5 text-orange-600" />
+                <span className="text-orange-800 font-medium">Demo Mode Active</span>
+                <span className="text-orange-600 text-sm">You are viewing demo data</span>
+              </div>
+              <button 
+                onClick={handleExitDemo}
+                className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors duration-200 text-sm font-medium"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Exit Demo
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* Hero Section */}
         <div className="text-center py-20 relative overflow-hidden">
           {/* Background gradient */}

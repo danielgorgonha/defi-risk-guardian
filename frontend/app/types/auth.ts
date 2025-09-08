@@ -88,3 +88,4 @@ export const DEMO_WALLET_CONFIG = {
   network: 'mainnet' as NetworkType,
   displayName: 'Demo User'
 } as const
+

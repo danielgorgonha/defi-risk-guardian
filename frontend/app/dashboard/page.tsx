@@ -11,6 +11,7 @@ import { useNavigation } from '../contexts/NavigationContext'
 import { useWalletStatus } from '../hooks/useWalletStatus'
 import { useWallet } from '../contexts/WalletContext'
 import { DemoModeBanner } from '../components/common/DemoModeBanner'
+import { AuthGuard } from '../components/common/AuthGuard'
 import { api, Portfolio, RiskAnalysis, Alert } from '../utils/api'
 
 // Type for consolidated demo response from backend
@@ -263,9 +264,10 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Dashboard - Added extra top padding to prevent header overlap */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
+    <AuthGuard>
+      <div className="min-h-screen bg-white">
+        {/* Dashboard - Added extra top padding to prevent header overlap */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-8">
         <DemoModeBanner />
 
         {isInitialLoading || isLoadingData ? (
@@ -319,7 +321,8 @@ export default function Dashboard() {
             </div>
           </>
         )}
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   )
 }
