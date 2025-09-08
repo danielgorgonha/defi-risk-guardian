@@ -1,13 +1,16 @@
 'use client'
 
 import { Star, RotateCcw } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useNavigation } from '../../contexts/NavigationContext'
+import { useWallet } from '../../contexts/WalletContext'
 import { useWalletStatus } from '../../hooks/useWalletStatus'
-import { api } from '../../utils/api'
 import { useToast } from './ToastProvider'
 
 export function DemoModeBanner() {
-  const { isDemoMode, setIsDemoMode, setShowNavigation } = useNavigation()
+  const router = useRouter()
+  const { isDemoMode, setShowNavigation } = useNavigation()
+  const { disableDemoMode } = useWallet()
   const { canLoadData } = useWalletStatus()
   const toast = useToast()
 
@@ -15,28 +18,18 @@ export function DemoModeBanner() {
     return null
   }
 
-  const handleResetDemo = async () => {
-    try {
-      // Clear demo data from backend if in demo mode
-      if (isDemoMode) {
-        await api.clearDemoData()
-      }
-    } catch (error) {
-      console.warn('Failed to clear demo data:', error)
-      // Continue with reset even if clearing demo data fails
-    }
+  const handleResetDemo = () => {
+    // Use WalletContext to properly exit demo mode
+    disableDemoMode()
     
-    // Clear localStorage first
+    // Clear navigation state
     localStorage.removeItem('showNavigation')
-    localStorage.removeItem('isDemoMode')
-    localStorage.removeItem('walletAddress')
-    
-    // Then reset all states
-    setIsDemoMode(false)
     setShowNavigation(false)
     
-    // Show success message
-    toast.showSuccess('Demo Reset', 'Demo data has been cleared successfully!')
+    // Redirect to main page (dashboard route) to show wallet connection screen
+    router.push('/')
+    
+    // No need for additional notification - WalletContext handles it
   }
 
   return (

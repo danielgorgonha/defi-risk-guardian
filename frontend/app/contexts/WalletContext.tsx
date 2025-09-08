@@ -10,18 +10,23 @@ export interface WalletInfo {
   network: 'mainnet' | 'testnet'
   isConnected: boolean
   walletType: 'freighter' | 'xbull' | 'ledger' | 'manual' | 'demo' | null
+  isDemoMode?: boolean
 }
 
 export interface WalletContextType {
   wallet: WalletInfo
-  connectWallet: (type: 'freighter' | 'xbull' | 'ledger' | 'manual', address?: string) => Promise<void>
+  connectWallet: (addressOrType: string | 'freighter' | 'xbull' | 'ledger' | 'manual', network?: 'mainnet' | 'testnet') => Promise<void>
   connectDemoWallet: () => Promise<void>
-  disconnectWallet: () => void
+  disconnectWallet: (silent?: boolean) => void
   switchNetwork: (network: 'mainnet' | 'testnet') => Promise<void>
   isLoading: boolean
   error: string | null
   clearCorruptedWalletData: () => void
   debugWalletData: () => void
+  // Demo mode helpers
+  enableDemoMode: () => void
+  disableDemoMode: () => void
+  isDemoMode: boolean
 }
 
 // Context
@@ -33,10 +38,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     address: '',
     network: 'mainnet',
     isConnected: false,
-    walletType: null
+    walletType: null,
+    isDemoMode: false
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isDemoMode, setIsDemoMode] = useState(false)
   const toast = useToast()
 
   // Load wallet state from localStorage on mount
@@ -104,6 +111,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         }
       }
       
+    }
+  }, [])
+
+  // Load demo mode state from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedDemoMode = localStorage.getItem('isDemoMode') === 'true'
+      setIsDemoMode(storedDemoMode)
     }
   }, [])
 
@@ -386,13 +401,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }
 
   // Connect wallet function
-  const connectWallet = async (type: 'freighter' | 'xbull' | 'ledger' | 'manual', address?: string) => {
+  const connectWallet = async (addressOrType: string | 'freighter' | 'xbull' | 'ledger' | 'manual', network: 'mainnet' | 'testnet' = 'mainnet') => {
     setIsLoading(true)
     setError(null)
 
     try {
+      // Disable demo mode when connecting real wallet
+      disableDemoMode()
+      
       let publicKey: string
-
+      const type = addressOrType as 'freighter' | 'xbull' | 'ledger' | 'manual'
+      
       switch (type) {
         case 'freighter':
           publicKey = await connectFreighter()
@@ -404,13 +423,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
           publicKey = await connectLedger()
           break
         case 'manual':
-          if (!address) {
-            throw new Error('Address is required for manual connection')
+          if (typeof addressOrType !== 'string' || !validateStellarAddress(addressOrType)) {
+            throw new Error('Invalid Stellar address provided')
           }
-          if (!validateStellarAddress(address)) {
-            throw new Error('Invalid Stellar address format')
-          }
-          publicKey = address
+          publicKey = addressOrType
           break
         default:
           throw new Error('Unsupported wallet type')
@@ -435,9 +451,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
       const newWallet: WalletInfo = {
         address: addressString,
-        network: wallet.network, // Keep current network
+        network: network,
         isConnected: true,
-        walletType: type
+        walletType: type,
+        isDemoMode: false
       }
 
       setWallet(newWallet)
@@ -445,7 +462,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
       toast.showSuccess('Wallet Connected', `Successfully connected to ${type} wallet!`)
 
-      // Automatically create user in backend
+      // Create user in backend
       await createUserInBackend(addressString)
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to connect wallet'
@@ -458,15 +475,27 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }
 
   // Disconnect wallet
-  const disconnectWallet = () => {
+  const disconnectWallet = (silent = false) => {
+    // Disable demo mode when disconnecting (silently)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('isDemoMode')
+      setIsDemoMode(false)
+      // No toast notification for demo mode disable during disconnect
+    }
+    
     setWallet({
       address: '',
       network: 'mainnet',
       isConnected: false,
-      walletType: null
+      walletType: null,
+      isDemoMode: false
     })
     clearWalletFromStorage()
-    toast.showInfo('Wallet Disconnected', 'You have been disconnected from your wallet.')
+    
+    // Only show notification if not called silently (e.g., from Header sign out)
+    if (!silent) {
+      toast.showInfo('Wallet Disconnected', 'You have been disconnected from your wallet.')
+    }
   }
 
   // Switch network
@@ -483,7 +512,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         address: '',
         network,
         isConnected: false,
-        walletType: null
+        walletType: null,
+        isDemoMode: false
       }
       setWallet(updatedWallet)
       saveWalletToStorage(updatedWallet)
@@ -508,11 +538,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         address: demoWalletAddress,
         network: 'mainnet', // Demo always uses mainnet
         isConnected: true,
-        walletType: 'demo'
+        walletType: 'demo',
+        isDemoMode: true
       }
 
       setWallet(newWallet)
       saveWalletToStorage(newWallet)
+      enableDemoMode()
 
       toast.showSuccess('Demo Wallet Connected', 'Successfully connected to demo portfolio!')
     } catch (error: any) {
@@ -525,6 +557,35 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Demo mode functions
+  const enableDemoMode = () => {
+    if (typeof window !== 'undefined') {
+      const wasAlreadyInDemo = localStorage.getItem('isDemoMode') === 'true'
+      if (!wasAlreadyInDemo) {
+        localStorage.setItem('isDemoMode', 'true')
+        setIsDemoMode(true)
+        toast.showSuccess('Demo Mode', 'Demo mode activated! All API calls will now return demo data.')
+      } else {
+        // Just update state without notification
+        setIsDemoMode(true)
+      }
+    }
+  }
+
+  const disableDemoMode = () => {
+    if (typeof window !== 'undefined') {
+      const wasInDemo = localStorage.getItem('isDemoMode') === 'true'
+      if (wasInDemo) {
+        localStorage.removeItem('isDemoMode')
+        setIsDemoMode(false)
+        toast.showInfo('Demo Mode', 'Demo mode disabled. Returning to normal operation.')
+      } else {
+        // Just update state without notification
+        setIsDemoMode(false)
+      }
+    }
+  }
+
   const value: WalletContextType = {
     wallet,
     connectWallet,
@@ -534,7 +595,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     isLoading,
     error,
     clearCorruptedWalletData,
-    debugWalletData
+    debugWalletData,
+    enableDemoMode,
+    disableDemoMode,
+    isDemoMode
   }
 
   return (

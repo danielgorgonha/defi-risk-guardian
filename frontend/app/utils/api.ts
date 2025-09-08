@@ -20,6 +20,27 @@ apiClient.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
+      
+      // Add demo mode flag if active
+      const isDemoMode = localStorage.getItem('isDemoMode') === 'true'
+      if (isDemoMode) {
+        // Add to headers
+        config.headers['X-Demo-Mode'] = 'true'
+        
+        // Also add to request data if it's a POST/PUT/PATCH request
+        if (config.method && ['post', 'put', 'patch'].includes(config.method.toLowerCase())) {
+          if (config.data && typeof config.data === 'object') {
+            config.data.isDemoMode = true
+          } else if (!config.data) {
+            config.data = { isDemoMode: true }
+          }
+        }
+        
+        // Add to query params for GET requests
+        if (config.method && config.method.toLowerCase() === 'get') {
+          config.params = { ...config.params, isDemoMode: 'true' }
+        }
+      }
     }
     return config
   },
@@ -147,7 +168,7 @@ export const api = {
 
   // Risk analysis endpoints
   analyzeRisk: async (walletAddress: string): Promise<RiskAnalysis> => {
-    const response = await apiClient.post('/api/v1/risk/analyze', {
+    const response = await apiClient.post('/api/v1/risk/ai-analysis', {
       wallet_address: walletAddress,
       confidence_level: 0.95
     })
@@ -156,6 +177,14 @@ export const api = {
 
   getRiskMetrics: async (walletAddress: string) => {
     const response = await apiClient.get(`/api/v1/risk/${walletAddress}/metrics`)
+    return response.data
+  },
+
+  // AI analysis endpoint
+  aiAnalysis: async (walletAddress: string) => {
+    const response = await apiClient.post('/api/v1/risk/ai-analysis', {
+      wallet_address: walletAddress
+    })
     return response.data
   },
 
@@ -226,31 +255,8 @@ export const api = {
     return response.data
   },
 
-  // Demo endpoints
-  createDemoPortfolio: async () => {
-    const response = await apiClient.post('/api/v1/demo/portfolio')
-    return response.data
-  },
-
-  clearDemoData: async () => {
-    const response = await apiClient.delete('/api/v1/demo/portfolio')
-    return response.data
-  },
-
-  getDemoStatus: async () => {
-    const response = await apiClient.get('/api/v1/demo/status')
-    return response.data
-  },
-
-  getDemoRiskAnalysis: async () => {
-    const response = await apiClient.get('/api/v1/demo/risk')
-    return response.data
-  },
-
-  getDemoAlerts: async () => {
-    const response = await apiClient.get('/api/v1/demo/alerts')
-    return response.data
-  }
+  // Demo mode is now handled automatically via localStorage flag
+  // No specific demo endpoints needed
 }
 
 export default api

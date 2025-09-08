@@ -67,7 +67,7 @@ export function Toast({ id, type, title, message, duration = 5000, onClose }: To
   return (
     <div
       className={`
-        fixed top-4 right-4 z-50 max-w-sm w-full
+        relative max-w-sm w-full
         transform transition-all duration-300 ease-in-out
         ${isVisible && !isLeaving ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
         ${getStyles()}
@@ -106,8 +106,8 @@ export interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-2">
-      {toasts.map((toast) => (
+    <div className="fixed top-4 right-4 z-50 flex flex-col space-y-2 max-w-sm">
+      {toasts.map((toast, index) => (
         <Toast
           key={toast.id}
           {...toast}

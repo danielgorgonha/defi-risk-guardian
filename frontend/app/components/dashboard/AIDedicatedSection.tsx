@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { api } from '../../utils/api'
 import { 
   Brain, 
   Activity, 
@@ -27,7 +28,7 @@ import {
   Coins
 } from 'lucide-react'
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts'
-import { RiskAnalysis, api } from '../../utils/api'
+import { RiskAnalysis } from '../../utils/api'
 import { useWallet } from '../../contexts/WalletContext'
 
 interface AIStatus {
@@ -96,28 +97,16 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
 
   // Fetch AI analysis data
   const fetchAIAnalysis = async () => {
-    if (!wallet.isConnected || !wallet.address) return
+    // Get wallet address from localStorage for demo mode
+    const walletAddress = wallet.address || localStorage.getItem('walletAddress')
+    if (!walletAddress) return
     
     try {
       setIsLoading(true)
-      console.log('Fetching AI analysis for:', wallet.address)
+      console.log('Fetching AI analysis for:', walletAddress)
       
-      // Fetch comprehensive AI analysis
-      const response = await fetch(`http://localhost:8000/api/v1/risk/ai-analysis`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          wallet_address: wallet.address
-        })
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-      
-      const data = await response.json()
+      // Fetch comprehensive AI analysis using API client (with demo mode support)
+      const data = await api.aiAnalysis(walletAddress)
       console.log('AI Analysis Data:', data)
       
       setAiAnalysisData(data)
@@ -207,10 +196,21 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
   useEffect(() => {
     fetchAIAnalysis()
   }, [wallet.address, wallet.isConnected])
+  
+  // Also fetch when localStorage changes (for demo mode)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      fetchAIAnalysis()
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
 
   // Real-time updates
   useEffect(() => {
-    if (!wallet.isConnected) return
+    const walletAddress = wallet.address || localStorage.getItem('walletAddress')
+    if (!walletAddress) return
     
     const interval = setInterval(() => {
       // Real-time updates to show activity
@@ -228,7 +228,7 @@ export function AIDedicatedSection({ riskAnalysis }: AIDedicatedSectionProps) {
     }, 15000) // Update every 15 seconds
 
     return () => clearInterval(interval)
-  }, [wallet.isConnected])
+  }, [wallet.isConnected, wallet.address])
 
   const getTypeIcon = (type: string) => {
     switch (type) {

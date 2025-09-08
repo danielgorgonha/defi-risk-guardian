@@ -4,6 +4,7 @@ import { Header } from './components/common/Header'
 import { ToastProvider } from './components/common/ToastProvider'
 import { NavigationProvider } from './contexts/NavigationContext'
 import { WalletProvider } from './contexts/WalletContext'
+import { LayoutWrapper } from './components/layout/LayoutWrapper'
 
 export const metadata: Metadata = {
   title: 'Risk Guardian',
@@ -20,12 +21,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased pt-16 min-h-screen" suppressHydrationWarning={true}>
+      <body className="antialiased min-h-screen" suppressHydrationWarning={true}>
         <NavigationProvider>
           <ToastProvider>
             <WalletProvider>
               <Header />
-              {children}
+              <LayoutWrapper>
+                {children}
+              </LayoutWrapper>
             </WalletProvider>
           </ToastProvider>
         </NavigationProvider>

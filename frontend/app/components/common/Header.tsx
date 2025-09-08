@@ -16,10 +16,10 @@ import {
   Star
 } from 'lucide-react'
 import { useNavigation } from '../../contexts/NavigationContext'
+import { useWallet } from '../../contexts/WalletContext'
 import { api } from '../../utils/api'
 import { useToast } from '../common/ToastProvider'
 import { WalletButton } from '../wallet/WalletButton'
-import { useWallet } from '../../contexts/WalletContext'
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -28,7 +28,7 @@ export function Header() {
   const pathname = usePathname()
   const router = useRouter()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
-  const wallet = useWallet()
+  const { wallet, connectWallet, disconnectWallet, connectDemoWallet } = useWallet()
   const toast = useToast()
 
   const navigation = [
@@ -43,46 +43,24 @@ export function Header() {
   const handleTryDemo = async () => {
     setIsLoading(true)
     try {
-      // Create demo portfolio in backend first
-      await api.createDemoPortfolio()
-      
       // Connect demo wallet to enable AI features
-      await wallet.connectDemoWallet()
+      await connectDemoWallet()
       
       // Set demo mode and show navigation
       setIsDemoMode(true)
+      setWalletMode('demo')
       setShowNavigation(true)
       
-      toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully! AI analysis is now available.')
-      
+      toast.showSuccess('Demo Mode Active', 'Demo mode activated! All API calls will now return demo data.')
     } catch (error: any) {
-      console.error('Error creating demo portfolio:', error)
-      
-      // Fallback to connect demo wallet even if backend fails
-      try {
-        await wallet.connectDemoWallet()
-        setIsDemoMode(true)
-        setShowNavigation(true)
-        toast.showInfo('Demo Mode (Offline)', 'Using offline demo data. Backend demo creation failed.')
-      } catch (walletError: any) {
-        toast.showError('Demo Error', error.response?.data?.detail || 'Failed to create demo portfolio')
-      }
+      console.error('Demo activation failed:', error)
+      toast.showError('Demo Error', 'Failed to activate demo mode')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleSignOut = async () => {
-    try {
-      // Clear demo data from backend if in demo mode
-      if (isDemoMode) {
-        await api.clearDemoData()
-      }
-    } catch (error) {
-      console.warn('Failed to clear demo data:', error)
-      // Continue with sign out even if clearing demo data fails
-    }
-    
     // Clear localStorage
     localStorage.removeItem('showNavigation')
     localStorage.removeItem('isDemoMode')
@@ -92,19 +70,12 @@ export function Header() {
     // Reset all states
     setIsDemoMode(false)
     setShowNavigation(false)
+    
+    // Disconnect wallet silently (no duplicate notifications)
+    disconnectWallet(true)
     setWalletMode('disconnected')
     
-    // Disconnect wallet if it's connected via WalletContext
-    if (walletMode === 'connected' && wallet.wallet.isConnected) {
-      try {
-        // Use WalletContext disconnect method
-        wallet.disconnectWallet()
-      } catch (error) {
-        console.warn('Failed to disconnect wallet:', error)
-      }
-    }
-    
-    // Show appropriate success message based on wallet mode
+    // Show single success message based on wallet mode
     const messages = {
       demo: 'Demo session ended successfully!',
       connected: 'Wallet disconnected successfully!', 
@@ -120,8 +91,15 @@ export function Header() {
     }, 500)
   }
 
+  // Header should be fixed only on main page (when not logged in)
+  // After login (wallet connected or demo mode), header should be normal (not fixed)
+  const isLoggedIn = showNavigation || isDemoMode || wallet.isConnected
+  const headerClasses = isLoggedIn 
+    ? "relative bg-blue-900 shadow-lg" 
+    : "fixed top-0 left-0 right-0 z-50 bg-blue-900 shadow-lg"
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-blue-900 shadow-lg">
+    <header className={headerClasses}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -252,7 +230,7 @@ export function Header() {
                 {/* Connect Wallet and Try Demo buttons */}
                 <WalletButton />
                 {/* Show Dashboard button if wallet is connected but navigation is not active */}
-                {wallet.wallet.isConnected && !showNavigation && (
+                {wallet.isConnected && !showNavigation && (
                   <button
                     onClick={() => {
                       setShowNavigation(true)

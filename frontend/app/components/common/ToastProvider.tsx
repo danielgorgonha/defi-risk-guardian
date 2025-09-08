@@ -40,7 +40,11 @@ export function ToastProvider({ children }: ToastProviderProps) {
       onClose: removeToast
     }
     
-    setToasts(prev => [...prev, newToast])
+    setToasts(prev => {
+      // Limit to maximum 5 toasts to prevent screen overflow
+      const newToasts = [...prev, newToast]
+      return newToasts.length > 5 ? newToasts.slice(1) : newToasts
+    })
   }, [removeToast])
 
   const showSuccess = useCallback((title: string, message?: string) => {

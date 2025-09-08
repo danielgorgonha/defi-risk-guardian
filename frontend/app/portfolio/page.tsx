@@ -13,7 +13,7 @@ import { DemoModeBanner } from '../components/common/DemoModeBanner'
 // Mock data - following Portfolio interface
 const mockPortfolio = {
   id: 1,
-  wallet_address: 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  wallet_address: 'GDEMOTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJK',
   risk_tolerance: 7,
   total_value: 125430.50,
   risk_score: 6.5,
@@ -71,7 +71,7 @@ export default function PortfolioPage() {
   const { wallet } = useWallet()
 
   // Demo wallet address
-  const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const demoWalletAddress = 'GDEMOTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJK'
 
   // Load wallet address based on walletMode and wallet status
   useEffect(() => {
@@ -107,21 +107,16 @@ export default function PortfolioPage() {
       console.log(`🔍 Loading portfolio for ${walletMode} wallet: ${walletAddress}`)
       
       // Try to load portfolio data for all wallet types
-      if (walletMode === 'demo') {
-        // Demo mode - try API first, fallback to mock data
-        try {
-          const portfolioData = await api.getPortfolio(walletAddress)
-          setPortfolio(portfolioData)
-          toast.showSuccess('Portfolio Loaded', 'Demo portfolio loaded successfully!')
-        } catch (error) {
-          console.warn('Demo API failed, using mock data:', error)
-          setPortfolio(mockPortfolio as Portfolio)
-          toast.showInfo('Demo Portfolio', 'Using demo data. Backend connection failed.')
-        }
-      } else if (walletMode === 'connected' || walletMode === 'tracked') {
-        // Connected or tracked wallet - try to load from API
-        const portfolioData = await api.getPortfolio(walletAddress)
-        setPortfolio(portfolioData)
+      // Load portfolio data - backend returns consolidated data for demo mode
+      const portfolioResponse = await api.getPortfolio(walletAddress)
+      
+      if ('demo_mode' in portfolioResponse && portfolioResponse.demo_mode) {
+        // ✨ Demo mode: use consolidated data (portfolio only here)
+        const demoResponse = portfolioResponse as any // Type assertion for demo response
+        setPortfolio(demoResponse.portfolio)
+      } else {
+        // Regular mode: use portfolio data directly
+        setPortfolio(portfolioResponse)
         const modeText = walletMode === 'connected' ? 'connected' : 'tracked'
         toast.showSuccess('Portfolio Loaded', `Portfolio for ${modeText} wallet loaded successfully!`)
       }
@@ -139,7 +134,7 @@ export default function PortfolioPage() {
         
         if (walletMode === 'demo') {
           setPortfolio(mockPortfolio as Portfolio)
-          toast.showInfo('Demo Portfolio', messages.demo)
+          // Remove demo notification to avoid duplication with DemoModeBanner
         } else {
           setPortfolio(null)
           toast.showInfo('Portfolio Not Found', messages[walletMode] || messages.disconnected)

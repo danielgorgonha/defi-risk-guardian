@@ -28,10 +28,12 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
       setShowNavigation(JSON.parse(savedShowNavigation))
     }
     if (savedIsDemoMode !== null) {
-      setIsDemoMode(JSON.parse(savedIsDemoMode))
+      // Handle both string 'true' and boolean true
+      const isDemo = savedIsDemoMode === 'true' || savedIsDemoMode === true
+      setIsDemoMode(isDemo)
     }
     if (savedWalletMode !== null) {
-      setWalletMode(JSON.parse(savedWalletMode))
+      setWalletMode(savedWalletMode as 'disconnected' | 'connected' | 'demo' | 'tracked')
     }
   }, [])
 

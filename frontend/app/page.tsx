@@ -26,10 +26,24 @@ import { DemoModeBanner } from './components/common/DemoModeBanner'
 import { ConnectWalletModal } from './components/wallet/ConnectWalletModal'
 import { api, Portfolio, RiskAnalysis, Alert } from './utils/api'
 
+// Type for consolidated demo response from backend
+interface ConsolidatedDemoResponse {
+  demo_mode: boolean
+  portfolio: Portfolio
+  risk_analysis: RiskAnalysis
+  alerts: {
+    alerts: Alert[]
+    total_active: number
+    total_resolved: number
+  }
+  rebalance_suggestions: any
+  timestamp: string
+}
+
 // Mock data for demo
 const mockPortfolio = {
   id: 1,
-  wallet_address: 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+  wallet_address: 'GDEMOTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJK',
   risk_tolerance: 0.5,
   total_value: 125000,
   risk_score: 35.2,
@@ -113,7 +127,7 @@ export default function Home() {
   const { wallet, connectDemoWallet } = useWallet()
 
   // Demo data
-  const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const demoWalletAddress = 'GDEMOTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJK'
 
   // Load saved state on mount and sync demo mode
   useEffect(() => {
@@ -136,9 +150,10 @@ export default function Home() {
     if (isDemoMode && !walletAddress) {
       setWalletAddress(demoWalletAddress)
       localStorage.setItem('walletAddress', demoWalletAddress)
-    } else if (!isDemoMode && walletAddress) {
-      // Clear wallet address when exiting demo mode
+    } else if (!isDemoMode && walletAddress === demoWalletAddress) {
+      // Clear demo wallet address when exiting demo mode
       setWalletAddress('')
+      localStorage.removeItem('walletAddress')
     }
   }, [isDemoMode])
 
@@ -237,9 +252,6 @@ export default function Home() {
   const handleDemoMode = async () => {
     setIsLoading(true)
     try {
-      // Create demo portfolio in backend
-      await api.createDemoPortfolio()
-      
       // Connect demo wallet to enable AI features
       await connectDemoWallet()
       
@@ -249,31 +261,26 @@ export default function Home() {
       setIsDemoMode(true) // Enable demo mode
       setShowNavigation(true) // Show navigation menus
       setWalletMode('demo') // Mark as demo mode
-      toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully! Loading data...')
+      toast.showSuccess('Demo Mode Activated', 'Loading demo data from fixtures...')
       
-      // Wait a bit for state to update, then load the demo data from backend
+      // Load the demo data - backend will return consolidated fixtures data
       setTimeout(async () => {
         await loadPortfolioData()
       }, 100)
       
     } catch (error: any) {
-      console.error('Error creating demo portfolio:', error)
+      console.error('Error activating demo mode:', error)
       
       // Fallback to mock data if backend fails
-      try {
-        await connectDemoWallet()
-        setWalletAddress(demoWalletAddress)
-        localStorage.setItem('walletAddress', demoWalletAddress)
-        setIsDemoMode(true)
-        setShowNavigation(true) // Show navigation even with mock data
-        setWalletMode('demo') // Mark as demo mode
-        setPortfolio(mockPortfolio as Portfolio)
-        setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
-        setAlerts(mockAlerts as Alert[])
-        toast.showInfo('Demo Mode (Offline)', 'Using offline demo data. Backend demo creation failed.')
-      } catch (walletError: any) {
-        toast.showError('Demo Error', 'Failed to initialize demo mode')
-      }
+      setWalletAddress(demoWalletAddress)
+      localStorage.setItem('walletAddress', demoWalletAddress)
+      setIsDemoMode(true)
+      setShowNavigation(true) // Show navigation even with mock data
+      setWalletMode('demo') // Mark as demo mode
+      setPortfolio(mockPortfolio as Portfolio)
+      setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
+      setAlerts(mockAlerts as Alert[])
+      toast.showInfo('Demo Mode (Offline)', 'Using offline fallback data.')
     } finally {
       setIsLoading(false)
     }
@@ -303,63 +310,64 @@ export default function Home() {
       return
     }
     
+    // Additional check: don't load if demo mode was just disabled
+    if (!isDemoMode && walletAddress === demoWalletAddress) {
+      console.log('🚫 Skipping data load - demo wallet address but not in demo mode')
+      return
+    }
+    
     setIsLoadingData(true)
     try {
-      // Load portfolio data for both demo and real wallets
-      try {
-        const portfolioData = await api.getPortfolio(walletAddress)
-        setPortfolio(portfolioData)
-      } catch (portfolioError) {
-        console.warn('Portfolio loading failed:', portfolioError)
-        // If portfolio doesn't exist but wallet is valid, show message but continue with other data
-        if (!isDemoMode) {
-          toast.showInfo('Portfolio Empty', 'No assets found in your portfolio. Start by adding some assets.')
-        }
-        setPortfolio(null)
+      // Load portfolio data - backend now returns consolidated data for demo mode
+      const portfolioResponse = await api.getPortfolio(walletAddress)
+      
+      // Check if this is consolidated demo data from backend fixtures
+      if ('demo_mode' in portfolioResponse && (portfolioResponse as any).demo_mode) {
+        // ✨ Demo mode: use consolidated data from single response
+        const demoResponse = portfolioResponse as any
+        setPortfolio(demoResponse.portfolio)
+        setRiskAnalysis(demoResponse.risk_analysis)
+        setAlerts(demoResponse.alerts?.alerts || demoResponse.alerts || [])
+        console.log('🎭 Demo mode: Using consolidated fixture data from backend')
+        return // Early return - no need for additional API calls
       }
       
-      // Load risk analysis - use demo endpoint if in demo mode, real API for real wallets
+      // Regular mode: set portfolio and load other data separately
+      setPortfolio(portfolioResponse)
+      
+      // Load risk analysis separately for real wallets
       try {
-        const riskData = isDemoMode 
-          ? await api.getDemoRiskAnalysis()
-          : await api.analyzeRisk(walletAddress)
+        const riskData = await api.analyzeRisk(walletAddress)
         setRiskAnalysis(riskData)
       } catch (riskError) {
         console.warn('Risk analysis failed:', riskError)
-        // For real wallets with no data, don't show mock data
-        if (isDemoMode) {
-          setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
-        } else {
-          setRiskAnalysis(null)
-          toast.showInfo('Risk Analysis', 'Unable to calculate risk metrics. Portfolio may be empty or invalid.')
-        }
+        setRiskAnalysis(null)
+        toast.showInfo('Risk Analysis', 'Unable to calculate risk metrics. Portfolio may be empty or invalid.')
       }
       
-      // Load alerts - use demo endpoint if in demo mode, real API for real wallets
+      // Load alerts separately for real wallets  
       try {
-        const alertsData = isDemoMode 
-          ? await api.getDemoAlerts()
-          : await api.getActiveAlerts(walletAddress)
-        setAlerts(alertsData.alerts || alertsData)
+        const alertsData = await api.getActiveAlerts(walletAddress)
+        setAlerts(Array.isArray(alertsData) ? alertsData : (alertsData as any)?.alerts || [])
       } catch (alertError) {
         console.warn('Alerts loading failed:', alertError)
-        // For real wallets with no alerts, just set empty array
-        if (isDemoMode) {
-          setAlerts(mockAlerts as Alert[])
-        } else {
-          setAlerts([])
-        }
+        setAlerts([])
       }
       
     } catch (error: any) {
       console.error('Error loading portfolio data:', error)
       
-      // If portfolio doesn't exist, show demo data instead
-      if (error.response?.status === 404 || error.response?.status === 400) {
-        toast.showInfo('Portfolio Not Found', 'Using demo data. Create a portfolio first.')
+      // Fallback to mock data for demo or errors
+      if (error.response?.status === 404 || error.response?.status === 400 || isDemoMode) {
+        console.log('📊 Using fallback mock data')
         setPortfolio(mockPortfolio as Portfolio)
         setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
         setAlerts(mockAlerts as Alert[])
+        
+        // Only show notification for non-demo 404 errors
+        if (!isDemoMode && error.response?.status === 404) {
+          toast.showInfo('Portfolio Not Found', 'Using demo data. Create a portfolio first.')
+        }
       } else {
         toast.showError('Data Loading Error', error.response?.data?.detail || 'Failed to load portfolio data')
       }

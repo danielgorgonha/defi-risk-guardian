@@ -43,7 +43,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
   const metrics = [
     {
       title: 'Value at Risk (95%)',
-      value: formatCurrency(var_95),
+      value: var_95 ? formatCurrency(var_95) : 'N/A',
       description: 'Maximum expected loss in 95% of scenarios',
       icon: TrendingDown,
       color: 'text-red-700 bg-red-100',
@@ -51,7 +51,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
     },
     {
       title: 'Volatility',
-      value: formatPercentage(volatility),
+      value: volatility ? formatPercentage(volatility) : 'N/A',
       description: 'Annual portfolio volatility',
       icon: Activity,
       color: 'text-yellow-700 bg-yellow-100',
@@ -59,15 +59,15 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
     },
     {
       title: 'Sharpe Ratio',
-      value: sharpe_ratio.toFixed(2),
+      value: sharpe_ratio ? sharpe_ratio.toFixed(2) : 'N/A',
       description: 'Risk-adjusted return',
       icon: BarChart3,
-      color: sharpe_ratio > 1 ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100',
-      hoverGlow: sharpe_ratio > 1 ? 'hover:shadow-lg hover:shadow-green-200' : 'hover:shadow-lg hover:shadow-red-200'
+      color: sharpe_ratio && sharpe_ratio > 1 ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100',
+      hoverGlow: sharpe_ratio && sharpe_ratio > 1 ? 'hover:shadow-lg hover:shadow-green-200' : 'hover:shadow-lg hover:shadow-red-200'
     },
     {
       title: 'Beta',
-      value: beta.toFixed(2),
+      value: beta ? beta.toFixed(2) : 'N/A',
       description: 'Market correlation (XLM)',
       icon: Target,
       color: beta > 1 ? 'text-yellow-700 bg-yellow-100' : 'text-blue-700 bg-blue-100',
@@ -91,7 +91,7 @@ export function RiskMetrics({ riskAnalysis }: RiskMetricsProps) {
         
         <div className="text-center">
           <div className="text-5xl font-bold text-black mb-3">
-            {risk_score.toFixed(1)}%
+            {risk_score ? risk_score.toFixed(1) : 'N/A'}%
           </div>
           <p className="text-sm text-gray-800 font-medium">
             Based on AI analysis and financial metrics
