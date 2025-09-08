@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import List, Dict, Any
 from app.core.database import get_db
 from app.models.database import User, RiskAlert
-from app.utils.demo_utils import is_demo_mode, log_demo_action, demo_data_provider
+# Demo utils removed - now handled in frontend
 from pydantic import BaseModel
 from datetime import datetime, timedelta
 
@@ -28,16 +28,9 @@ class AlertCreate(BaseModel):
     message: str
 
 @router.get("/{wallet_address}", response_model=List[AlertResponse])
-async def get_alerts(wallet_address: str, request: Request, db: Session = Depends(get_db)):
+async def get_alerts(wallet_address: str, db: Session = Depends(get_db)):
     """Get all alerts for a wallet"""
     try:
-        # Log demo action if in demo mode
-        log_demo_action(request, "get_alerts", {"wallet_address": wallet_address})
-        
-        # Demo mode: return fixture alerts
-        if is_demo_mode(request):
-            alerts_data = demo_data_provider.get_alerts_data()
-            return alerts_data["alerts"]
         # Get user
         user = db.query(User).filter(User.wallet_address == wallet_address).first()
         if not user:
@@ -66,17 +59,9 @@ async def get_alerts(wallet_address: str, request: Request, db: Session = Depend
         raise HTTPException(status_code=500, detail=f"Error getting alerts: {str(e)}")
 
 @router.get("/{wallet_address}/active", response_model=List[AlertResponse])
-async def get_active_alerts(wallet_address: str, request: Request, db: Session = Depends(get_db)):
+async def get_active_alerts(wallet_address: str, db: Session = Depends(get_db)):
     """Get only active alerts for a wallet"""
     try:
-        # Log demo action if in demo mode
-        log_demo_action(request, "get_active_alerts", {"wallet_address": wallet_address})
-        
-        # Demo mode: return only active fixture alerts
-        if is_demo_mode(request):
-            alerts_data = demo_data_provider.get_alerts_data()
-            active_alerts = [alert for alert in alerts_data["alerts"] if alert["is_active"]]
-            return active_alerts
         # Get user
         user = db.query(User).filter(User.wallet_address == wallet_address).first()
         if not user:

@@ -18,7 +18,7 @@ from app.api.v1 import portfolio, risk, alerts, rebalance
 from app.core.database import engine, Base
 from app.services.stellar_oracle import StellarOracleClient
 from app.services.cache import cache_service
-from app.middleware import DemoMiddleware
+# Demo middleware removed - now handled in frontend
 
 # Load environment variables
 load_dotenv()
@@ -47,8 +47,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Demo detection middleware
-app.add_middleware(DemoMiddleware)
+# Demo detection middleware removed - now handled in frontend
 
 # Include API routers
 app.include_router(portfolio.router, prefix="/api/v1/portfolio", tags=["portfolio"])
