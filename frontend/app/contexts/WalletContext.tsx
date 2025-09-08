@@ -9,12 +9,13 @@ export interface WalletInfo {
   address: string
   network: 'mainnet' | 'testnet'
   isConnected: boolean
-  walletType: 'freighter' | 'xbull' | 'ledger' | 'manual' | null
+  walletType: 'freighter' | 'xbull' | 'ledger' | 'manual' | 'demo' | null
 }
 
 export interface WalletContextType {
   wallet: WalletInfo
   connectWallet: (type: 'freighter' | 'xbull' | 'ledger' | 'manual', address?: string) => Promise<void>
+  connectDemoWallet: () => Promise<void>
   disconnectWallet: () => void
   switchNetwork: (network: 'mainnet' | 'testnet') => Promise<void>
   isLoading: boolean
@@ -495,9 +496,39 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Connect demo wallet function
+  const connectDemoWallet = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const demoWalletAddress = "GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+      const newWallet: WalletInfo = {
+        address: demoWalletAddress,
+        network: 'mainnet', // Demo always uses mainnet
+        isConnected: true,
+        walletType: 'demo'
+      }
+
+      setWallet(newWallet)
+      saveWalletToStorage(newWallet)
+
+      toast.showSuccess('Demo Wallet Connected', 'Successfully connected to demo portfolio!')
+    } catch (error: any) {
+      const errorMessage = error.message || 'Failed to connect demo wallet'
+      setError(errorMessage)
+      toast.showError('Demo Connection Failed', errorMessage)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const value: WalletContextType = {
     wallet,
     connectWallet,
+    connectDemoWallet,
     disconnectWallet,
     switchNetwork,
     isLoading,

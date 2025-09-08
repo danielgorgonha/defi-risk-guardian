@@ -28,7 +28,7 @@ export function Header() {
   const pathname = usePathname()
   const router = useRouter()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
-  const { wallet, disconnectWallet } = useWallet()
+  const wallet = useWallet()
   const toast = useToast()
 
   const navigation = [
@@ -43,15 +43,30 @@ export function Header() {
   const handleTryDemo = async () => {
     setIsLoading(true)
     try {
+      // Create demo portfolio in backend first
       await api.createDemoPortfolio()
+      
+      // Connect demo wallet to enable AI features
+      await wallet.connectDemoWallet()
+      
+      // Set demo mode and show navigation
       setIsDemoMode(true)
       setShowNavigation(true)
-      toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully!')
       
-      // No need to redirect - the state changes will trigger the UI update
+      toast.showSuccess('Demo Portfolio Created', 'Demo portfolio created successfully! AI analysis is now available.')
+      
     } catch (error: any) {
       console.error('Error creating demo portfolio:', error)
-      toast.showError('Demo Error', error.response?.data?.detail || 'Failed to create demo portfolio')
+      
+      // Fallback to connect demo wallet even if backend fails
+      try {
+        await wallet.connectDemoWallet()
+        setIsDemoMode(true)
+        setShowNavigation(true)
+        toast.showInfo('Demo Mode (Offline)', 'Using offline demo data. Backend demo creation failed.')
+      } catch (walletError: any) {
+        toast.showError('Demo Error', error.response?.data?.detail || 'Failed to create demo portfolio')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -80,10 +95,10 @@ export function Header() {
     setWalletMode('disconnected')
     
     // Disconnect wallet if it's connected via WalletContext
-    if (walletMode === 'connected' && wallet.isConnected) {
+    if (walletMode === 'connected' && wallet.wallet.isConnected) {
       try {
         // Use WalletContext disconnect method
-        disconnectWallet()
+        wallet.disconnectWallet()
       } catch (error) {
         console.warn('Failed to disconnect wallet:', error)
       }
@@ -237,7 +252,7 @@ export function Header() {
                 {/* Connect Wallet and Try Demo buttons */}
                 <WalletButton />
                 {/* Show Dashboard button if wallet is connected but navigation is not active */}
-                {wallet.isConnected && !showNavigation && (
+                {wallet.wallet.isConnected && !showNavigation && (
                   <button
                     onClick={() => {
                       setShowNavigation(true)

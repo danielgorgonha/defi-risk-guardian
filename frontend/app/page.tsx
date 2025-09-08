@@ -110,7 +110,7 @@ export default function Home() {
   const toast = useToast()
   const { showNavigation, setShowNavigation, isDemoMode, setIsDemoMode, walletMode, setWalletMode } = useNavigation()
   const { canLoadData, walletAddress: currentWalletAddress } = useWalletStatus()
-  const { wallet } = useWallet()
+  const { wallet, connectDemoWallet } = useWallet()
 
   // Demo data
   const demoWalletAddress = 'GDEMO1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -240,6 +240,10 @@ export default function Home() {
       // Create demo portfolio in backend
       await api.createDemoPortfolio()
       
+      // Connect demo wallet to enable AI features
+      await connectDemoWallet()
+      
+      // Set demo mode states
       setWalletAddress(demoWalletAddress)
       localStorage.setItem('walletAddress', demoWalletAddress)
       setIsDemoMode(true) // Enable demo mode
@@ -256,15 +260,20 @@ export default function Home() {
       console.error('Error creating demo portfolio:', error)
       
       // Fallback to mock data if backend fails
-      setWalletAddress(demoWalletAddress)
-      localStorage.setItem('walletAddress', demoWalletAddress)
-      setIsDemoMode(true)
-      setShowNavigation(true) // Show navigation even with mock data
-      setWalletMode('demo') // Mark as demo mode
-      setPortfolio(mockPortfolio as Portfolio)
-      setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
-      setAlerts(mockAlerts as Alert[])
-      toast.showInfo('Demo Mode (Offline)', 'Using offline demo data. Backend demo creation failed.')
+      try {
+        await connectDemoWallet()
+        setWalletAddress(demoWalletAddress)
+        localStorage.setItem('walletAddress', demoWalletAddress)
+        setIsDemoMode(true)
+        setShowNavigation(true) // Show navigation even with mock data
+        setWalletMode('demo') // Mark as demo mode
+        setPortfolio(mockPortfolio as Portfolio)
+        setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
+        setAlerts(mockAlerts as Alert[])
+        toast.showInfo('Demo Mode (Offline)', 'Using offline demo data. Backend demo creation failed.')
+      } catch (walletError: any) {
+        toast.showError('Demo Error', 'Failed to initialize demo mode')
+      }
     } finally {
       setIsLoading(false)
     }
