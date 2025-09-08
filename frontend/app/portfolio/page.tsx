@@ -10,56 +10,6 @@ import { useWalletStatus } from '../hooks/useWalletStatus'
 import { useWallet } from '../contexts/WalletContext'
 import { DemoModeBanner } from '../components/common/DemoModeBanner'
 
-// Mock data - following Portfolio interface
-const mockPortfolio = {
-  id: 1,
-  wallet_address: 'GDEMOTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJK',
-  risk_tolerance: 7,
-  total_value: 125430.50,
-  risk_score: 6.5,
-  assets: [
-    {
-      id: 1,
-      asset_code: 'XLM',
-      asset_issuer: undefined,
-      balance: 50000,
-      price_usd: 0.25,
-      value_usd: 12500.00,
-      target_allocation: 10.0,
-      current_allocation: 9.97
-    },
-    {
-      id: 2,
-      asset_code: 'USDC',
-      asset_issuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
-      balance: 25000,
-      price_usd: 1.00,
-      value_usd: 25000.00,
-      target_allocation: 20.0,
-      current_allocation: 19.94
-    },
-    {
-      id: 3,
-      asset_code: 'ETH',
-      asset_issuer: undefined,
-      balance: 15.5,
-      price_usd: 2258.06,
-      value_usd: 35000.00,
-      target_allocation: 30.0,
-      current_allocation: 27.91
-    },
-    {
-      id: 4,
-      asset_code: 'BTC',
-      asset_issuer: undefined,
-      balance: 0.8,
-      price_usd: 66163.13,
-      value_usd: 52930.50,
-      target_allocation: 40.0,
-      current_allocation: 42.18
-    }
-  ]
-}
 
 export default function PortfolioPage() {
   const [walletAddress, setWalletAddress] = useState('')
@@ -126,19 +76,14 @@ export default function PortfolioPage() {
       if (error.response?.status === 404) {
         // Portfolio not found
         const messages = {
-          demo: 'Demo portfolio not found. Using mock data.',
+          demo: 'Demo portfolio not found.',
           connected: 'No portfolio found for your connected wallet. Create one first!',
           tracked: 'No portfolio found for this wallet address. Create one first!',
           disconnected: 'Please connect a wallet first.'
         }
         
-        if (walletMode === 'demo') {
-          setPortfolio(mockPortfolio as Portfolio)
-          // Remove demo notification to avoid duplication with DemoModeBanner
-        } else {
-          setPortfolio(null)
-          toast.showInfo('Portfolio Not Found', messages[walletMode] || messages.disconnected)
-        }
+        setPortfolio(null)
+        toast.showInfo('Portfolio Not Found', messages[walletMode] || messages.disconnected)
       } else {
         // Other errors
         toast.showError('Portfolio Error', error.response?.data?.detail || 'Failed to load portfolio data')

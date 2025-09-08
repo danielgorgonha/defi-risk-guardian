@@ -40,78 +40,6 @@ interface ConsolidatedDemoResponse {
   timestamp: string
 }
 
-// Mock data for demo
-const mockPortfolio = {
-  id: 1,
-  wallet_address: 'GDEMOTEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJK',
-  risk_tolerance: 0.5,
-  total_value: 125000,
-  risk_score: 35.2,
-  assets: [
-    {
-      id: 1,
-      asset_code: 'XLM',
-      balance: 50000,
-      price_usd: 0.12,
-      value_usd: 6000,
-      target_allocation: 40,
-      current_allocation: 48
-    },
-    {
-      id: 2,
-      asset_code: 'USDC',
-      balance: 25000,
-      price_usd: 1.0,
-      value_usd: 25000,
-      target_allocation: 20,
-      current_allocation: 20
-    },
-    {
-      id: 3,
-      asset_code: 'BTC',
-      balance: 0.5,
-      price_usd: 45000,
-      value_usd: 22500,
-      target_allocation: 30,
-      current_allocation: 18
-    }
-  ]
-}
-
-const mockRiskAnalysis = {
-  portfolio_value: 125000,
-  var_95: 2500,
-  var_99: 3750,
-  volatility: 18.5,
-  sharpe_ratio: 1.2,
-  beta: 0.8,
-  max_drawdown: 12.3,
-  risk_score: 35.2,
-  recommendations: [
-    'Consider reducing XLM allocation to target 40%',
-    'Monitor BTC volatility closely',
-    'Diversify with additional stable assets'
-  ]
-}
-
-const mockAlerts = [
-  {
-    id: 1,
-    alert_type: 'rebalance',
-    severity: 'medium',
-    message: 'XLM allocation is 8% above target. Consider rebalancing.',
-    triggered_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    is_active: true
-  },
-  {
-    id: 2,
-    alert_type: 'volatility',
-    severity: 'low',
-    message: 'BTC volatility increased by 15% in the last 24h.',
-    triggered_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    is_active: true
-  }
-]
 
 export default function Home() {
   const [walletAddress, setWalletAddress] = useState('')
@@ -271,16 +199,8 @@ export default function Home() {
     } catch (error: any) {
       console.error('Error activating demo mode:', error)
       
-      // Fallback to mock data if backend fails
-      setWalletAddress(demoWalletAddress)
-      localStorage.setItem('walletAddress', demoWalletAddress)
-      setIsDemoMode(true)
-      setShowNavigation(true) // Show navigation even with mock data
-      setWalletMode('demo') // Mark as demo mode
-      setPortfolio(mockPortfolio as Portfolio)
-      setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
-      setAlerts(mockAlerts as Alert[])
-      toast.showInfo('Demo Mode (Offline)', 'Using offline fallback data.')
+      // Fallback - just show error if backend fails
+      toast.showError('Demo Mode Error', 'Failed to activate demo mode. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -357,17 +277,9 @@ export default function Home() {
     } catch (error: any) {
       console.error('Error loading portfolio data:', error)
       
-      // Fallback to mock data for demo or errors
-      if (error.response?.status === 404 || error.response?.status === 400 || isDemoMode) {
-        console.log('📊 Using fallback mock data')
-        setPortfolio(mockPortfolio as Portfolio)
-        setRiskAnalysis(mockRiskAnalysis as RiskAnalysis)
-        setAlerts(mockAlerts as Alert[])
-        
-        // Only show notification for non-demo 404 errors
-        if (!isDemoMode && error.response?.status === 404) {
-          toast.showInfo('Portfolio Not Found', 'Using demo data. Create a portfolio first.')
-        }
+      // Show error message for all cases
+      if (error.response?.status === 404) {
+        toast.showInfo('Portfolio Not Found', 'No portfolio found for this wallet. Create a portfolio first.')
       } else {
         toast.showError('Data Loading Error', error.response?.data?.detail || 'Failed to load portfolio data')
       }
