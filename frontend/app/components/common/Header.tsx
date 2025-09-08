@@ -136,12 +136,12 @@ export function Header() {
     router.push('/')
   }
 
-  // Header should be fixed only on main page (when not logged in)
-  // After login (wallet connected or demo mode), header should be normal (not fixed)
-  const isLoggedIn = showNavigation || isDemoMode || wallet.isConnected
-  const headerClasses = isLoggedIn 
-    ? "relative bg-blue-900 shadow-lg" 
-    : "fixed top-0 left-0 right-0 z-50 bg-blue-900 shadow-lg"
+  // Header should be fixed only on landing page (pathname === '/')
+  // On all other pages, header should be normal (not fixed)
+  const isLandingPage = pathname === '/'
+  const headerClasses = isLandingPage 
+    ? "fixed top-0 left-0 right-0 z-50 bg-blue-900 shadow-lg" 
+    : "relative bg-blue-900 shadow-lg"
 
   return (
     <header className={headerClasses}>
