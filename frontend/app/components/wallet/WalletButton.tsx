@@ -142,15 +142,6 @@ export function WalletButton() {
 
           {/* Actions */}
           <div className="py-2">
-            {!showNavigation && (
-              <button
-                onClick={handleGoToDashboard}
-                className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-green-600 hover:bg-green-50 transition-colors"
-              >
-                <ArrowRight className="h-4 w-4" />
-                <span>Go to Dashboard</span>
-              </button>
-            )}
             <button
               onClick={openInStellarExpert}
               className="w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"

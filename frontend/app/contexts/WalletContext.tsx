@@ -484,7 +484,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 • Try refreshing the page and reconnecting
 • Verify xBull extension is up to date
 
-Last error: ${publicKeyError?.message || 'Unknown error'}`
+Last error: ${(publicKeyError as any)?.message || 'Unknown error'}`
         
         throw new Error(errorMessage)
       }
@@ -595,6 +595,17 @@ Last error: ${publicKeyError?.message || 'Unknown error'}`
 
       // Create user in backend
       await createUserInBackend(addressString)
+
+      // Enable navigation and redirect to dashboard after successful connection
+      if (typeof window !== 'undefined') {
+        // Enable navigation state
+        localStorage.setItem('showNavigation', 'true')
+        localStorage.setItem('walletMode', JSON.stringify('connected'))
+        
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 1000)
+      }
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to connect wallet'
       setError(errorMessage)
