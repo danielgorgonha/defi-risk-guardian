@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useToast } from '../components/common/ToastProvider'
 import { api } from '../utils/api'
+import { useRouter } from 'next/navigation'
 
 // Types
 export interface WalletInfo {
@@ -45,6 +46,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null)
   const [isDemoMode, setIsDemoMode] = useState(false)
   const toast = useToast()
+  const router = useRouter()
 
   // Load wallet state from localStorage on mount
   useEffect(() => {
@@ -602,9 +604,9 @@ Last error: ${(publicKeyError as any)?.message || 'Unknown error'}`
         localStorage.setItem('showNavigation', 'true')
         localStorage.setItem('walletMode', JSON.stringify('connected'))
         
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 1000)
+        // Redirect to dashboard
+        router.push('/dashboard')
+
       }
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to connect wallet'

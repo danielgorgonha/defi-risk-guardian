@@ -14,7 +14,9 @@ import {
   Wallet,
   Eye,
   Star,
-  ArrowRight
+  ArrowRight,
+  ExternalLink,
+  Copy
 } from 'lucide-react'
 import { useNavigation } from '../../contexts/NavigationContext'
 import { useWallet } from '../../contexts/WalletContext'
@@ -63,6 +65,37 @@ export function Header() {
   
   const actualUserStatus = getActualUserStatus()
   const toast = useToast()
+
+  // Copy wallet address function
+  const copyAddress = async () => {
+    try {
+      // Handle object format {address: "..."}
+      let address = wallet.address
+      if (address && typeof address === 'object' && 'address' in address) {
+        address = (address as any).address
+      }
+      
+      await navigator.clipboard.writeText(address || '')
+      toast.showSuccess('Address Copied', 'Wallet address copied to clipboard!')
+    } catch (error) {
+      console.error('Failed to copy address:', error)
+      toast.showError('Copy Failed', 'Failed to copy address to clipboard')
+    }
+  }
+
+  // Open in Stellar Expert function
+  const openInStellarExpert = () => {
+    // Handle object format {address: "..."}
+    let address = wallet.address
+    if (address && typeof address === 'object' && 'address' in address) {
+      address = (address as any).address
+    }
+    
+    // Use mainnet for real wallets, testnet for demo
+    const network = wallet.isDemoMode ? 'testnet' : 'public'
+    const url = `https://stellar.expert/explorer/${network}/account/${address}`
+    window.open(url, '_blank')
+  }
   
   // Force sync walletMode when demo mode is detected
   useEffect(() => {
@@ -231,6 +264,39 @@ export function Header() {
                           </span>
                         </div>
                       </div>
+
+                      {/* Wallet Address (only for real connected wallets, not demo) */}
+                      {actualUserStatus === 'connected' && (
+                        <div className="px-4 py-3 border-b border-gray-200">
+                          <div className="text-xs text-gray-500 mb-1">Address</div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-mono text-gray-900 break-all">
+                              {wallet.address?.slice(0, 8)}...{wallet.address?.slice(-8)}
+                            </span>
+                            <button
+                              onClick={copyAddress}
+                              className="ml-2 p-1 hover:bg-gray-100 rounded transition-colors"
+                              title="Copy address"
+                            >
+                              <Copy className="h-4 w-4 text-gray-500" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* View on Stellar Expert (only for real connected wallets, not demo) */}
+                      {actualUserStatus === 'connected' && (
+                        <button
+                          onClick={() => {
+                            openInStellarExpert()
+                            setIsProfileOpen(false)
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors duration-200"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-3" />
+                          View on Stellar Expert
+                        </button>
+                      )}
                       
                       <Link
                         href="/settings"
