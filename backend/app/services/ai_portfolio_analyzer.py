@@ -306,75 +306,121 @@ class AIPortfolioAnalyzer:
     
     def _calculate_volatility(self, price_history: List[PricePoint]) -> float:
         """Calculate annualized volatility from price history"""
-        if len(price_history) < 2:
-            return 0.2  # Default volatility
-        
-        prices = [p.price for p in price_history]
-        returns = np.diff(np.log(prices))
-        
-        if len(returns) == 0:
+        try:
+            if len(price_history) < 2:
+                return 0.2  # Default volatility
+            
+            prices = [p.price for p in price_history if p.price > 0]  # Filter out zero prices
+            
+            if len(prices) < 2:
+                return 0.2
+            
+            # Calculate returns safely
+            returns = np.diff(np.log(prices))
+            
+            if len(returns) == 0 or np.isnan(returns).any():
+                return 0.2
+            
+            # Annualized volatility (assuming hourly data)
+            volatility = np.std(returns) * np.sqrt(24 * 365)
+            
+            # Handle NaN values
+            if np.isnan(volatility) or np.isinf(volatility):
+                return 0.2
+            
+            return min(volatility, 2.0)  # Cap at 200%
+            
+        except Exception as e:
+            logger.warning(f"Error calculating volatility: {str(e)}")
             return 0.2
-        
-        # Annualized volatility (assuming hourly data)
-        volatility = np.std(returns) * np.sqrt(24 * 365)
-        return min(volatility, 2.0)  # Cap at 200%
     
     def _calculate_beta(self, price_history: List[PricePoint], asset_code: str) -> float:
         """Calculate beta against XLM (market proxy)"""
-        if asset_code == 'XLM':
-            return 1.0
-        
-        if len(price_history) < 10:
-            # Return default beta based on asset type
-            default_betas = {
-                'USDC': 0.1, 'USDT': 0.1, 'USD': 0.1,
-                'BTC': 0.8, 'ETH': 0.9, 'ADA': 1.2
-            }
-            return default_betas.get(asset_code, 0.7)
-        
-        # Simplified beta calculation (in production, would use XLM price data)
-        prices = [p.price for p in price_history]
-        returns = np.diff(np.log(prices))
-        
-        # Mock market returns (would use actual XLM returns)
-        market_returns = np.random.normal(0, 0.02, len(returns))
-        
-        if len(returns) > 0 and len(market_returns) > 0:
-            covariance = np.cov(returns, market_returns)[0][1]
-            market_variance = np.var(market_returns)
+        try:
+            if asset_code == 'XLM':
+                return 1.0
             
-            if market_variance > 0:
-                beta = covariance / market_variance
-                return max(min(beta, 3.0), -1.0)  # Cap between -1 and 3
-        
-        return 0.7  # Default beta
+            if len(price_history) < 10:
+                # Return default beta based on asset type
+                default_betas = {
+                    'USDC': 0.1, 'USDT': 0.1, 'USD': 0.1,
+                    'BTC': 0.8, 'ETH': 0.9, 'ADA': 1.2
+                }
+                return default_betas.get(asset_code, 0.7)
+            
+            # Simplified beta calculation (in production, would use XLM price data)
+            prices = [p.price for p in price_history if p.price > 0]
+            
+            if len(prices) < 2:
+                return 0.7
+            
+            returns = np.diff(np.log(prices))
+            
+            if len(returns) == 0 or np.isnan(returns).any():
+                return 0.7
+            
+            # Mock market returns (would use actual XLM returns)
+            market_returns = np.random.normal(0, 0.02, len(returns))
+            
+            if len(returns) > 0 and len(market_returns) > 0:
+                try:
+                    covariance = np.cov(returns, market_returns)[0][1]
+                    market_variance = np.var(market_returns)
+                    
+                    if market_variance > 0 and not np.isnan(covariance):
+                        beta = covariance / market_variance
+                        if not np.isnan(beta) and not np.isinf(beta):
+                            return max(min(beta, 3.0), -1.0)  # Cap between -1 and 3
+                except Exception:
+                    pass
+            
+            return 0.7  # Default beta
+            
+        except Exception as e:
+            logger.warning(f"Error calculating beta for {asset_code}: {str(e)}")
+            return 0.7
     
     def _calculate_correlation_with_xlm(self, price_history: List[PricePoint], asset_code: str) -> float:
         """Calculate correlation with XLM"""
-        if asset_code == 'XLM':
-            return 1.0
-        
-        if len(price_history) < 10:
-            # Default correlations
-            default_correlations = {
-                'USDC': 0.1, 'USDT': 0.1, 'USD': 0.1,
-                'BTC': 0.7, 'ETH': 0.8, 'ADA': 0.6
-            }
-            return default_correlations.get(asset_code, 0.4)
-        
-        # Simplified correlation calculation
-        prices = [p.price for p in price_history]
-        returns = np.diff(np.log(prices))
-        
-        # Mock XLM returns (would use actual XLM data)
-        xlm_returns = np.random.normal(0, 0.02, len(returns))
-        
-        if len(returns) > 1 and len(xlm_returns) > 1:
-            correlation = np.corrcoef(returns, xlm_returns)[0][1]
-            if not np.isnan(correlation):
-                return max(min(correlation, 1.0), -1.0)
-        
-        return 0.4  # Default correlation
+        try:
+            if asset_code == 'XLM':
+                return 1.0
+            
+            if len(price_history) < 10:
+                # Default correlations
+                default_correlations = {
+                    'USDC': 0.1, 'USDT': 0.1, 'USD': 0.1,
+                    'BTC': 0.7, 'ETH': 0.8, 'ADA': 0.6
+                }
+                return default_correlations.get(asset_code, 0.4)
+            
+            # Simplified correlation calculation
+            prices = [p.price for p in price_history if p.price > 0]
+            
+            if len(prices) < 2:
+                return 0.4
+            
+            returns = np.diff(np.log(prices))
+            
+            if len(returns) == 0 or np.isnan(returns).any():
+                return 0.4
+            
+            # Mock XLM returns (would use actual XLM data)
+            xlm_returns = np.random.normal(0, 0.02, len(returns))
+            
+            if len(returns) > 1 and len(xlm_returns) > 1:
+                try:
+                    correlation = np.corrcoef(returns, xlm_returns)[0][1]
+                    if not np.isnan(correlation) and not np.isinf(correlation):
+                        return max(min(correlation, 1.0), -1.0)
+                except Exception:
+                    pass
+            
+            return 0.4  # Default correlation
+            
+        except Exception as e:
+            logger.warning(f"Error calculating correlation for {asset_code}: {str(e)}")
+            return 0.4
     
     async def _calculate_advanced_risk_metrics(self, assets: List[PortfolioAsset]) -> RiskMetrics:
         """Calculate comprehensive risk metrics using real data"""
@@ -438,45 +484,81 @@ class AIPortfolioAnalyzer:
     
     def _calculate_portfolio_volatility_with_correlations(self, assets: List[PortfolioAsset]) -> float:
         """Calculate portfolio volatility considering asset correlations"""
-        if len(assets) <= 1:
-            return assets[0].volatility if assets else 0.2
-        
-        # Simplified correlation matrix (in production, use actual correlations)
-        n = len(assets)
-        weights = np.array([asset.allocation for asset in assets])
-        volatilities = np.array([asset.volatility for asset in assets])
-        
-        # Create correlation matrix (simplified)
-        correlation_matrix = np.eye(n)
-        for i in range(n):
-            for j in range(n):
-                if i != j:
-                    # Use average correlation between assets
-                    avg_corr = (assets[i].correlation_xlm + assets[j].correlation_xlm) / 2
-                    correlation_matrix[i][j] = avg_corr * 0.7  # Reduce correlation slightly
-        
-        # Portfolio variance
-        covariance_matrix = np.outer(volatilities, volatilities) * correlation_matrix
-        portfolio_variance = np.dot(weights, np.dot(covariance_matrix, weights))
-        
-        return np.sqrt(max(portfolio_variance, 0))
+        try:
+            if len(assets) <= 1:
+                return assets[0].volatility if assets else 0.2
+            
+            # Simplified correlation matrix (in production, use actual correlations)
+            n = len(assets)
+            weights = np.array([asset.allocation for asset in assets])
+            volatilities = np.array([asset.volatility for asset in assets])
+            
+            # Validate inputs
+            if np.isnan(weights).any() or np.isnan(volatilities).any():
+                return 0.2
+            
+            # Create correlation matrix (simplified)
+            correlation_matrix = np.eye(n)
+            for i in range(n):
+                for j in range(n):
+                    if i != j:
+                        # Use average correlation between assets
+                        avg_corr = (assets[i].correlation_xlm + assets[j].correlation_xlm) / 2
+                        correlation_matrix[i][j] = avg_corr * 0.7  # Reduce correlation slightly
+            
+            # Portfolio variance
+            covariance_matrix = np.outer(volatilities, volatilities) * correlation_matrix
+            portfolio_variance = np.dot(weights, np.dot(covariance_matrix, weights))
+            
+            # Handle NaN and negative values
+            if np.isnan(portfolio_variance) or portfolio_variance < 0:
+                return 0.2
+            
+            result = np.sqrt(portfolio_variance)
+            
+            # Final validation
+            if np.isnan(result) or np.isinf(result):
+                return 0.2
+            
+            return result
+            
+        except Exception as e:
+            logger.warning(f"Error calculating portfolio volatility: {str(e)}")
+            return 0.2
     
     def _calculate_var_historical(self, assets: List[PortfolioAsset], confidence: float) -> float:
         """Calculate VaR using historical simulation approach"""
-        total_value = sum(asset.current_value for asset in assets)
-        portfolio_volatility = self._calculate_portfolio_volatility_with_correlations(assets)
-        
-        # Generate simulated returns
-        num_simulations = 10000
-        returns = np.random.normal(0, portfolio_volatility / np.sqrt(252), num_simulations)
-        
-        # Calculate portfolio values
-        portfolio_values = total_value * (1 + returns)
-        losses = total_value - portfolio_values
-        
-        # VaR is the percentile of losses
-        var = np.percentile(losses, confidence * 100)
-        return max(var, 0)
+        try:
+            total_value = sum(asset.current_value for asset in assets)
+            
+            if total_value <= 0:
+                return 0.0
+            
+            portfolio_volatility = self._calculate_portfolio_volatility_with_correlations(assets)
+            
+            if portfolio_volatility <= 0:
+                return 0.0
+            
+            # Generate simulated returns
+            num_simulations = 10000
+            returns = np.random.normal(0, portfolio_volatility / np.sqrt(252), num_simulations)
+            
+            # Calculate portfolio values
+            portfolio_values = total_value * (1 + returns)
+            losses = total_value - portfolio_values
+            
+            # VaR is the percentile of losses
+            var = np.percentile(losses, confidence * 100)
+            
+            # Handle NaN values
+            if np.isnan(var) or np.isinf(var):
+                return 0.0
+            
+            return max(var, 0)
+            
+        except Exception as e:
+            logger.warning(f"Error calculating VaR: {str(e)}")
+            return 0.0
     
     def _calculate_conditional_var(self, assets: List[PortfolioAsset], confidence: float) -> float:
         """Calculate Conditional VaR (Expected Shortfall)"""
@@ -499,23 +581,34 @@ class AIPortfolioAnalyzer:
     
     def _calculate_sharpe_ratio(self, assets: List[PortfolioAsset], portfolio_volatility: float) -> float:
         """Calculate portfolio Sharpe ratio"""
-        if portfolio_volatility == 0:
+        try:
+            if portfolio_volatility == 0 or np.isnan(portfolio_volatility) or np.isinf(portfolio_volatility):
+                return 0.0
+            
+            # Expected return (weighted average of asset expected returns)
+            # For demo, use simple expected returns
+            expected_returns = {
+                'XLM': 0.08, 'USDC': 0.02, 'BTC': 0.15, 'ETH': 0.12
+            }
+            
+            portfolio_expected_return = sum(
+                expected_returns.get(asset.asset_code, 0.06) * asset.allocation 
+                for asset in assets
+            )
+            
+            risk_free_rate = 0.02  # 2% risk-free rate
+            
+            sharpe_ratio = (portfolio_expected_return - risk_free_rate) / portfolio_volatility
+            
+            # Handle NaN and infinite values
+            if np.isnan(sharpe_ratio) or np.isinf(sharpe_ratio):
+                return 0.0
+            
+            return sharpe_ratio
+            
+        except Exception as e:
+            logger.warning(f"Error calculating Sharpe ratio: {str(e)}")
             return 0.0
-        
-        # Expected return (weighted average of asset expected returns)
-        # For demo, use simple expected returns
-        expected_returns = {
-            'XLM': 0.08, 'USDC': 0.02, 'BTC': 0.15, 'ETH': 0.12
-        }
-        
-        portfolio_expected_return = sum(
-            expected_returns.get(asset.asset_code, 0.06) * asset.allocation 
-            for asset in assets
-        )
-        
-        risk_free_rate = 0.02  # 2% risk-free rate
-        
-        return (portfolio_expected_return - risk_free_rate) / portfolio_volatility
     
     def _calculate_sortino_ratio(self, assets: List[PortfolioAsset]) -> float:
         """Calculate Sortino ratio (downside risk adjusted)"""

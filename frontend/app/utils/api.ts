@@ -22,26 +22,7 @@ apiClient.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`
       }
       
-      // Add demo mode flag if active
-      const isDemoMode = localStorage.getItem('isDemoMode') === 'true'
-      if (isDemoMode) {
-        // Add to headers
-        config.headers['X-Demo-Mode'] = 'true'
-        
-        // Also add to request data if it's a POST/PUT/PATCH request
-        if (config.method && ['post', 'put', 'patch'].includes(config.method.toLowerCase())) {
-          if (config.data && typeof config.data === 'object') {
-            config.data.isDemoMode = true
-          } else if (!config.data) {
-            config.data = { isDemoMode: true }
-          }
-        }
-        
-        // Add to query params for GET requests
-        if (config.method && config.method.toLowerCase() === 'get') {
-          config.params = { ...config.params, isDemoMode: 'true' }
-        }
-      }
+      // Demo mode is now handled locally in frontend - no need to send to backend
     }
     return config
   },
@@ -209,7 +190,8 @@ export const api = {
       wallet_address: walletAddress,
       confidence_level: 0.95
     })
-    return response.data
+    // The API returns { risk_metrics: {...} }, so we need to extract risk_metrics
+    return response.data.risk_metrics
   },
 
   getRiskMetrics: async (walletAddress: string) => {

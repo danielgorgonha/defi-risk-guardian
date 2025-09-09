@@ -75,7 +75,6 @@ export const DEFAULT_AUTH_STATE: AuthState = {
 
 // Request headers for backend communication
 export interface ApiHeaders {
-  'X-Demo-Mode': string
   'X-Wallet-Address': string
   'X-Wallet-Type': string
   'X-Network': string
