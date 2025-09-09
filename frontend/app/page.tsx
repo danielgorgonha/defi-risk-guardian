@@ -136,9 +136,11 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Hero Section */}
-        <div className="text-center py-15 relative overflow-hidden">
+        <div className="py-15">
           <DemoModeBanner />
+        </div>
+        {/* Hero Section */}
+        <div className="text-center relative overflow-hidden">
 
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-stellar/10 via-stellar-800/10 to-dark-gray/10"></div>
