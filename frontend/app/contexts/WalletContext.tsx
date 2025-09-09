@@ -512,7 +512,7 @@ Last error: ${(publicKeyError as any)?.message || 'Unknown error'}`
   // Connect to Ledger wallet
   const connectLedger = async (): Promise<string> => {
     // Ledger requires USB/Bluetooth integration - complex implementation
-    throw new Error('🔒 Ledger Hardware Wallet Support\n\n• Hardware wallet integration requires USB/Bluetooth access\n• Advanced security features planned for enterprise version\n• Coming in Q3 2025 with full hardware wallet support\n\nFor now, please use Freighter or xBull wallets.')
+    throw new Error('🔒 Ledger Hardware Wallet Support\n\n• Hardware wallet integration requires USB/Bluetooth access\n• Advanced security features planned for enterprise version\n• Coming in Q4 2025 with full hardware wallet support\n\nFor now, please use Freighter or xBull wallets.')
   }
 
   // Validate Stellar address

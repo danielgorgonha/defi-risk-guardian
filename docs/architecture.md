@@ -232,6 +232,6 @@ Real-time Updates → WebSocket → Frontend State → UI Update
 
 **Growth Projections:**
 - Current: 500+ concurrent users
-- 6 months: 10K+ institutional clients  
+- 6 months: 1K+ institutional clients  
 - 12 months: Cross-chain support for major protocols
 - 18 months: Multi-region deployment with sub-50ms global latency

@@ -207,7 +207,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
       
       // Current placeholder implementation
       toast.showInfo(
-        '🚀 Soroban Domains Coming Q2 2025!',
+        '🚀 Soroban Domains Coming Q4 2025!',
         `Domain "${sorobanDomain}" will resolve to Stellar address. Like ENS for Ethereum, built on Soroban smart contracts.`
       )
     }
@@ -237,7 +237,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
       description: 'Hardware wallet',
       icon: 'ledger',
       isAvailable: false,
-      comingSoon: 'Q3 2025'
+      comingSoon: 'Q4 2025'
     }
   ]
 
@@ -248,7 +248,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
       description: 'Mobile & Web wallet',
       icon: 'lobstr',
       isAvailable: false,
-      comingSoon: 'Q2 2025'
+      comingSoon: 'Q4 2025'
     },
     {
       id: 'atomic',
@@ -256,7 +256,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
       description: 'Multi-asset wallet',
       icon: 'atomic',
       isAvailable: false,
-      comingSoon: 'Q2 2025'
+      comingSoon: 'Q4 2025'
     },
     {
       id: 'solar',
@@ -264,7 +264,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
       description: 'Stellar-focused wallet',
       icon: 'solar',
       isAvailable: false,
-      comingSoon: 'Q3 2025'
+      comingSoon: 'Q4 2025'
     }
   ]
 
@@ -375,7 +375,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
           >
             {/* Coming Soon Badge */}
             <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full shadow-lg">
-              Q2 2025
+              Q4 2025
             </div>
             <div className="flex items-center space-x-3">
               <div className="p-1.5 bg-white/20 rounded-md">
@@ -394,7 +394,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
             <div className="space-y-3 p-3 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
               <div>
                 <h3 className="text-white font-medium text-sm mb-1">Soroban Domains (Preview)</h3>
-                <p className="text-xs text-blue-200">🚀 Coming Q2 2025: Use friendly names like "john.stellar" instead of long addresses</p>
+                <p className="text-xs text-blue-200">🚀 Coming Q4 2025: Use friendly names like "john.stellar" instead of long addresses</p>
               </div>
               <form onSubmit={handleSorobanSubmit} className="flex space-x-2">
                 <input

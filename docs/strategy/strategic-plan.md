@@ -472,17 +472,17 @@
 
 ### **Immediate Actions (Next 30 Days)**
 1. **Team Expansion**: Hire 1 senior developer
-2. **Funding**: Seek $500K in pre-seed funding
+2. **Funding**: Seek $100K-200K in pre-seed funding
 3. **Partnerships**: Start conversations with Stellar ecosystem
 4. **Product**: Complete core portfolio features
 5. **Marketing**: Launch beta program
 
 ### **Short-term Goals (Next 90 Days)**
 1. **Technical**: Complete MVP with real-time pricing
-2. **Business**: Reach 100 beta users
+2. **Business**: Reach 50 beta users
 3. **Financial**: Prepare for seed funding round
 4. **Strategic**: Establish first partnerships
-5. **Team**: Expand to 5 people
+5. **Team**: Expand to 3-4 people
 
 ### **Long-term Vision (18 Months)**
 1. **Market**: Leadership in DeFi risk management

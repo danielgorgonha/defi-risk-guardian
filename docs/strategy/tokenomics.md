@@ -350,9 +350,9 @@ Reward = (Stake / Total Stake) × Daily Pool × Multiplier
 
 #### **Adoption Metrics**
 - **Holders**: 100K → 1M
-- **Stakers**: 10K → 100K
-- **Governance Participants**: 1K → 10K
-- **Cross-chain Users**: 0 → 50K
+- **Stakers**: 1K → 10K
+- **Governance Participants**: 100 → 1K
+- **Cross-chain Users**: 0 → 5K
 
 #### **Utility Metrics**
 - **Fee Payments**: 0% → 80%
