@@ -193,4 +193,10 @@ cd frontend && pnpm install && pnpm run dev
 - Q3 2025: Multi-chain support (Ethereum, Solana)
 - Q4 2025: Institutional trading platform launch
 
+**📋 Strategic Documents**
+- **[Executive Summary](docs/strategy/executive-summary.md)**: Executive summary and investment opportunity
+- **[Strategic Roadmap](docs/strategy/roadmap.md)**: Complete strategic roadmap 2025-2027
+- **[Implementation Plan](docs/strategy/strategic-plan.md)**: Detailed implementation plan
+- **[Tokenomics & Governance](docs/strategy/tokenomics.md)**: Token economics and governance
+
 *MIT License - Production-ready codebase with comprehensive security measures*
