@@ -1,5 +1,22 @@
 # Risk Guardian
 
+<div align="center">
+  <img src="docs/assets/defi-risk-guardian.png" alt="DeFi Risk Guardian Logo" width="200" height="200">
+</div>
+
+<div align="center">
+
+![Next.js](https://img.shields.io/badge/Next.js-15.5.2-black?style=for-the-badge&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
+![Python](https://img.shields.io/badge/Python-3.11-yellow?style=for-the-badge&logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green?style=for-the-badge&logo=fastapi)
+![Stellar](https://img.shields.io/badge/Stellar-Network-7D00FF?style=for-the-badge&logo=stellar)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue?style=for-the-badge&logo=postgresql)
+![Redis](https://img.shields.io/badge/Redis-7.0-red?style=for-the-badge&logo=redis)
+![Docker](https://img.shields.io/badge/Docker-24.0-blue?style=for-the-badge&logo=docker)
+
+</div>
+
 **AI-powered risk management platform for DeFi portfolios**
 
 Risk Guardian transforms how investors protect and optimize their DeFi portfolios through advanced artificial intelligence, real-time analytics, and predictive risk modeling on the Stellar network.
