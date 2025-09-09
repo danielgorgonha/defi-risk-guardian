@@ -53,10 +53,8 @@ export default function Home() {
       
       toast.showSuccess('Wallet Tracked', 'Your Stellar wallet is now being tracked! Redirecting to dashboard...')
       
-      // Redirect to dashboard after connection
-      setTimeout(() => {
-        window.location.href = '/dashboard'
-      }, 1000)
+      // Redirect to dashboard
+      router.push('/dashboard')
       
     } catch (error: any) {
       console.error('Error tracking wallet:', error)
@@ -82,10 +80,8 @@ export default function Home() {
       
       toast.showSuccess('Demo Mode Activated', 'Welcome to Risk Guardian Demo! Redirecting to dashboard...')
       
-      // Redirect to dashboard after demo activation
-      setTimeout(() => {
-        window.location.href = '/dashboard'
-      }, 1000)
+      // Redirect to dashboard
+      router.push('/dashboard')
       
     } catch (error: any) {
       console.error('Error activating demo mode:', error)
