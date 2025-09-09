@@ -125,24 +125,24 @@ Q4 2026: $500M       → Q1 2027: $1B+ (Unicorn)
 ## 👥 Team & Resources
 
 ### **Current Team**
-- **Core Developers**: 3 engineers
-- **AI/ML Specialists**: 2 data scientists
-- **Blockchain Experts**: 2 developers
-- **Business Development**: 1 manager
+- **Core Team**: 2 full-stack developers
+  - Full-stack development and blockchain integration
+  - AI/ML implementation and risk analytics
+  - Product strategy and business development
 
 ### **Planned Expansion**
-- **Q4 2025**: 10 team members
-- **Q1 2026**: 25 team members
-- **Q2 2026**: 50 team members
-- **Q3 2026**: 100 team members
-- **Q4 2026**: 200 team members
+- **Q4 2025**: 5 team members
+- **Q1 2026**: 10 team members
+- **Q2 2026**: 20 team members
+- **Q3 2026**: 35 team members
+- **Q4 2026**: 50 team members
 
 ### **Key Hires Needed**
-- **CTO**: Technical leadership
-- **Head of AI**: AI/ML strategy
-- **Head of Business**: Business development
-- **Head of Compliance**: Regulatory affairs
-- **Head of Marketing**: Growth and branding
+- **Senior Developer**: Backend and blockchain expertise
+- **AI/ML Engineer**: Risk modeling and data science
+- **Product Manager**: User experience and feature development
+- **Business Development**: Partnerships and growth
+- **DevOps Engineer**: Infrastructure and deployment
 
 ---
 

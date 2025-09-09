@@ -32,9 +32,9 @@
 - **Community Treasury**: 50M DRG (5%)
 
 #### **Team & Advisors (20% - 200M DRG)**
-- **Core Team**: 150M DRG (15%)
+- **Core Team (2 founders)**: 120M DRG (12%)
 - **Advisors**: 30M DRG (3%)
-- **Future Hires**: 20M DRG (2%)
+- **Future Hires**: 50M DRG (5%)
 
 #### **Treasury & Development (20% - 200M DRG)**
 - **Development Fund**: 100M DRG (10%)
