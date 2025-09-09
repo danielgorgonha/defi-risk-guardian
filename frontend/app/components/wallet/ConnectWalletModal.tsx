@@ -20,6 +20,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
   const [showManualInput, setShowManualInput] = useState(false)
   const [sorobanDomain, setSorobanDomain] = useState('')
   const [showSorobanInput, setShowSorobanInput] = useState(false)
+  const [showAdditionalWallets, setShowAdditionalWallets] = useState(false)
   const [isConnecting, setIsConnecting] = useState<string | null>(null)
   const [isFreighterAvailable, setIsFreighterAvailable] = useState(false)
   const [isXBullAvailable, setIsXBullAvailable] = useState(false)
@@ -233,9 +234,37 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
     {
       id: 'ledger',
       name: 'Ledger',
-      description: 'Hardware wallet (Q3 2025)',
+      description: 'Hardware wallet',
       icon: 'ledger',
-      isAvailable: false
+      isAvailable: false,
+      comingSoon: 'Q3 2025'
+    }
+  ]
+
+  const additionalWallets = [
+    {
+      id: 'lobstr',
+      name: 'Lobstr',
+      description: 'Mobile & Web wallet',
+      icon: 'lobstr',
+      isAvailable: false,
+      comingSoon: 'Q2 2025'
+    },
+    {
+      id: 'atomic',
+      name: 'Atomic Wallet',
+      description: 'Multi-asset wallet',
+      icon: 'atomic',
+      isAvailable: false,
+      comingSoon: 'Q2 2025'
+    },
+    {
+      id: 'solar',
+      name: 'Solar Wallet',
+      description: 'Stellar-focused wallet',
+      icon: 'solar',
+      isAvailable: false,
+      comingSoon: 'Q3 2025'
     }
   ]
 
@@ -354,7 +383,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
               </div>
               <div className="text-left">
                 <div className="font-medium text-white text-sm">Soroban Domains</div>
-                <div className="text-xs text-blue-200">Decentralized DNS for Stellar (Coming Soon)</div>
+                <div className="text-xs text-blue-200">Decentralized DNS for Stellar (Preview)</div>
               </div>
             </div>
             <ChevronRight className="h-4 w-4 text-blue-300" />
@@ -404,7 +433,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
                   }
                 }}
                 disabled={isConnecting === option.id}
-                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-300 ${
+                className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-300 relative ${
                   option.isAvailable
                     ? 'bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/15 hover:shadow-lg'
                     : option.id === 'freighter' || option.id === 'xbull'
@@ -412,6 +441,12 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
                     : 'bg-white/5 border-white/10 cursor-not-allowed opacity-60'
                 }`}
               >
+                {/* Coming Soon Badge - Standardized */}
+                {option.comingSoon && (
+                  <div className="absolute -top-1 -right-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white text-xs font-medium px-2 py-0.5 rounded-full shadow-sm">
+                    {option.comingSoon}
+                  </div>
+                )}
                 <div className="flex items-center space-x-3">
                   <div className={`p-1.5 ${option.isAvailable ? 'bg-white/20' : 'bg-white/10'} rounded-md`}>
                     <WalletIcon wallet={option.icon as any} className="h-4 w-4" />
@@ -432,11 +467,43 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
               </button>
             ))}
 
+          {/* Additional Wallets - Collapsible */}
+          {showAdditionalWallets && (
+            <div className="space-y-2 pt-2 border-t border-white/10">
+              {additionalWallets.map((wallet) => (
+                <button
+                  key={wallet.id}
+                  disabled
+                  className="w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-300 relative bg-white/5 border-white/10 cursor-not-allowed opacity-60"
+                >
+                  {/* Coming Soon Badge - Standardized */}
+                  {wallet.comingSoon && (
+                    <div className="absolute -top-1 -right-1 bg-gradient-to-r from-gray-500 to-gray-600 text-white text-xs font-medium px-2 py-0.5 rounded-full shadow-sm">
+                      {wallet.comingSoon}
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-3">
+                    <div className="p-1.5 bg-white/10 rounded-md">
+                      <WalletIcon wallet={wallet.icon as any} className="h-4 w-4" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-medium text-sm text-gray-400">{wallet.name}</div>
+                      <div className="text-xs text-gray-500">{wallet.description}</div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* See More Wallets */}
           <div className="pt-2">
-            <button className="w-full flex items-center justify-center space-x-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors">
-              <span>See more wallets (3)</span>
-              <ChevronDown className="h-4 w-4" />
+            <button 
+              onClick={() => setShowAdditionalWallets(!showAdditionalWallets)}
+              className="w-full flex items-center justify-center space-x-2 text-sm text-yellow-400 hover:text-yellow-300 transition-colors"
+            >
+              <span>{showAdditionalWallets ? 'Hide additional wallets' : 'See more wallets (3)'}</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${showAdditionalWallets ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
