@@ -135,10 +135,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DemoModeBanner />
         
         {/* Hero Section */}
-        <div className="text-center py-20 relative overflow-hidden">
+        <div className="text-center py-15 relative overflow-hidden">
+          <DemoModeBanner />
+
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-stellar/10 via-stellar-800/10 to-dark-gray/10"></div>
           
@@ -173,7 +174,7 @@ export default function Home() {
         </div>
 
         {/* Why Reflector Section */}
-        <div className="pt-2 pb-20">
+        <div className="pt-10 pb-20">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-extrabold text-gray-900 mb-6">
               Why Reflector Matters for DeFi Risk Management
