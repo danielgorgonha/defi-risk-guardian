@@ -23,9 +23,18 @@ class StellarOracleClient:
         # Initialize Stellar server
         self.server = Server(self.horizon_url)
         
-        # Set network
+        # Set network and configure Soroban RPC URL
         if self.network == "testnet":
             Network.testnet_network()
+            self.soroban_rpc_url = settings.SOROBAN_RPC_TESTNET
+            self.contracts = {
+                "stellar_dex": settings.REFLECTOR_STELLAR_DEX_TESTNET,
+                "external_cex": settings.REFLECTOR_EXTERNAL_CEX_TESTNET,
+                "fiat": settings.REFLECTOR_FIAT_TESTNET
+            }
+        elif self.network == "futurenet":
+            Network.testnet_network()  # Futurenet uses testnet network
+            self.soroban_rpc_url = settings.SOROBAN_RPC_FUTURENET
             self.contracts = {
                 "stellar_dex": settings.REFLECTOR_STELLAR_DEX_TESTNET,
                 "external_cex": settings.REFLECTOR_EXTERNAL_CEX_TESTNET,
@@ -33,6 +42,7 @@ class StellarOracleClient:
             }
         else:
             Network.public_network()
+            self.soroban_rpc_url = settings.SOROBAN_RPC_MAINNET
             self.contracts = {
                 "stellar_dex": settings.REFLECTOR_STELLAR_DEX_MAINNET,
                 "external_cex": settings.REFLECTOR_EXTERNAL_CEX_MAINNET,
@@ -199,7 +209,7 @@ class StellarOracleClient:
                 }
                 
                 # Make HTTP call to Soroban RPC endpoint
-                soroban_rpc_url = "https://rpc-futurenet.stellar.org"  # Futurenet Soroban RPC (working)
+                soroban_rpc_url = self.soroban_rpc_url
                 
                 async with httpx.AsyncClient() as client:
                     response = await client.post(
@@ -271,7 +281,7 @@ class StellarOracleClient:
             
             # Try to get price from Reflector API
             # Using the correct Reflector API endpoint
-            api_url = f"https://api.reflector.network/v1/price/{asset_identifier}"
+            api_url = f"{settings.REFLECTOR_API_URL}/v1/price/{asset_identifier}"
             
             async with httpx.AsyncClient() as client:
                 response = await client.get(api_url, timeout=10.0)

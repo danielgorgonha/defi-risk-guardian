@@ -23,8 +23,14 @@ class Settings(BaseSettings):
     # Stellar
     STELLAR_NETWORK: str = "mainnet"  # testnet or mainnet
     HORIZON_URL: str = "https://horizon-mainnet.stellar.org"
+    
+    # Soroban RPC URLs
+    SOROBAN_RPC_MAINNET: str = "https://rpc-mainnet.stellar.org"
+    SOROBAN_RPC_TESTNET: str = "https://rpc-testnet.stellar.org"
+    SOROBAN_RPC_FUTURENET: str = "https://rpc-futurenet.stellar.org"
+    
     # Reflector Oracle API
-    REFLECTOR_API_URL: str = "https://reflector-api.stellar.org"
+    REFLECTOR_API_URL: str = "https://api.reflector.network"
     REFLECTOR_API_KEY: str = ""        
     
     # Reflector Oracle Contracts
