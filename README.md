@@ -1,7 +1,5 @@
-# Risk Guardian
-
 <div align="center">
-  <img src="docs/assets/defi-risk-guardian.png" alt="DeFi Risk Guardian Logo" width="200" height="200">
+  <img src="docs/assets/defi-risk-guardian.png" alt="DeFi Risk Guardian Logo" width="400" height="400">
 </div>
 
 <div align="center">
