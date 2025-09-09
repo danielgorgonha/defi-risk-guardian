@@ -75,17 +75,25 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
           const freighterAvailable = !!freighterApi || freighterLibraryAvailable
           setIsFreighterAvailable(freighterAvailable)
 
-          // Check xBull - multiple possible names
+          // Check xBull - multiple possible names (aligned with WalletContext)
           const xBullChecks = [
             (window as any).xBull,
             (window as any).xbull,
             (window as any).stellar?.xBull,
-            (window as any).__xBull
+            (window as any).__xBull,
+            (window as any).XBullSDK,
+            (window as any).xBullSDK
           ]
           
           const xBull = xBullChecks.find(bull => 
-            bull && typeof bull === 'object'
+            bull && typeof bull === 'object' && 
+            (typeof bull.connect === 'function' || typeof bull.getPublicKey === 'function')
           )
+          
+          console.log('🔍 xBull Modal Detection:', {
+            found: !!xBull,
+            allWindowKeys: Object.keys(window).filter(k => k.toLowerCase().includes('bull'))
+          })
           
           const xBullAvailable = !!xBull
           setIsXBullAvailable(xBullAvailable)

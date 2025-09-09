@@ -373,19 +373,136 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       throw new Error('Window is not available')
     }
 
-    // Check if xBull is available
-    if (!window.xBull) {
-      throw new Error('xBull wallet is not installed. Please install it from the Chrome Web Store.')
+    // Check xBull - multiple possible names (same logic as in ConnectWalletModal)
+    const xBullChecks = [
+      (window as any).xBull,
+      (window as any).xbull,
+      (window as any).stellar?.xBull,
+      (window as any).__xBull,
+      (window as any).XBullSDK,
+      (window as any).xBullSDK
+    ]
+    
+    const xBull = xBullChecks.find(bull => 
+      bull && typeof bull === 'object' && 
+      (typeof bull.connect === 'function' || typeof bull.getPublicKey === 'function')
+    )
+
+    console.log('🔍 xBull Detection Debug:', {
+      foundAPI: !!xBull,
+      availableProps: xBull ? Object.keys(xBull) : [],
+      windowKeys: Object.keys(window).filter(k => k.toLowerCase().includes('bull'))
+    })
+
+    if (!xBull) {
+      throw new Error('xBull wallet is not installed or not properly loaded. Please ensure xBull extension is installed and page is refreshed.')
     }
 
     try {
-      // Request connection
-      const result = await window.xBull.connect()
-      if (!result || !result.publicKey) {
-        throw new Error('Failed to connect to xBull wallet')
+      // Step 1: Connect to xBull (establishes permissions)
+      let connectionResult
+      if (typeof xBull.connect === 'function') {
+        const connectConfig = {
+          canRequestSign: true,
+          canRequestPublicKey: true
+        }
+        connectionResult = await xBull.connect(connectConfig)
+        console.log('xBull connection established:', connectionResult)
+      } else {
+        console.log('Available xBull methods:', Object.keys(xBull))
+        throw new Error('xBull connect method not available')
       }
-      return result.publicKey
+
+      // Step 2: Get public key (after connection is established)
+      let publicKey = ''
+      let publicKeyError = null
+      
+      // Try multiple methods to get public key
+      const methods = [
+        {
+          name: 'getPublicKey()',
+          fn: () => xBull.getPublicKey()
+        },
+        {
+          name: 'request({type: "getPublicKey"})',
+          fn: () => xBull.request({ type: 'getPublicKey' })
+        },
+        {
+          name: 'request({type: "getAccount"})',
+          fn: () => xBull.request({ type: 'getAccount' })
+        },
+        {
+          name: 'request({type: "connect"})',
+          fn: () => xBull.request({ type: 'connect' })
+        }
+      ]
+
+      for (const method of methods) {
+        try {
+          console.log(`🔍 Trying xBull method: ${method.name}`)
+          const result = await method.fn()
+          console.log(`✅ ${method.name} result:`, result)
+          
+          // Extract public key from various response formats
+          if (typeof result === 'string' && result.length >= 56) {
+            publicKey = result
+            break
+          } else if (result && result.publicKey) {
+            publicKey = result.publicKey
+            break
+          } else if (result && result.address) {
+            publicKey = result.address
+            break
+          } else if (result && result.account) {
+            publicKey = result.account
+            break
+          } else if (result && result.data && result.data.publicKey) {
+            publicKey = result.data.publicKey
+            break
+          } else if (result && result.data && result.data.address) {
+            publicKey = result.data.address
+            break
+          }
+        } catch (error) {
+          console.log(`❌ ${method.name} failed:`, error)
+          publicKeyError = error
+          continue
+        }
+      }
+
+      // Validate public key
+      if (!publicKey || typeof publicKey !== 'string' || publicKey.length < 56) {
+        console.error('❌ All xBull methods failed to get public key')
+        console.error('Last error:', publicKeyError)
+        console.error('Available xBull methods:', Object.keys(xBull))
+        
+        const errorMessage = `Failed to get public key from xBull wallet.
+
+🔧 Troubleshooting:
+• Ensure xBull wallet is unlocked
+• Check if you have an active Stellar account
+• Try refreshing the page and reconnecting
+• Verify xBull extension is up to date
+
+Last error: ${publicKeyError?.message || 'Unknown error'}`
+        
+        throw new Error(errorMessage)
+      }
+
+      console.log('✅ Successfully got xBull public key:', publicKey.slice(0, 8) + '...')
+      return publicKey
     } catch (error: any) {
+      console.error('xBull connection error details:', {
+        error: error,
+        message: error.message,
+        stack: error.stack,
+        xBullMethods: xBull ? Object.keys(xBull) : 'no xBull'
+      })
+      
+      if (error.message.includes('Value sent is not valid')) {
+        throw new Error('xBull connection failed: Please ensure your xBull wallet is properly configured and unlocked.')
+      }
+      
       throw new Error(`xBull connection failed: ${error.message}`)
     }
   }
