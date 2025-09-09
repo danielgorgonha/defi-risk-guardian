@@ -93,6 +93,7 @@ Unlike traditional portfolio trackers (Messari, DeFiPulse) that provide only his
 **Backend**: FastAPI with Python AI models and PostgreSQL  
 **Blockchain**: Stellar SDK with Freighter wallet integration
 **AI Engine**: Custom ML models with real-time prediction capabilities
+**Oracle Integration**: [Reflector Oracle](https://reflector.network/) for reliable price feeds
 
 ```
 User Interface → AI Risk Engine → Stellar Network → Real-time Analytics
@@ -118,6 +119,13 @@ pip install -r requirements.txt && uvicorn app.main:app --reload
 # Frontend  
 cd frontend && pnpm install && pnpm run dev
 ```
+
+## Documentation
+
+- **[🏗️ System Architecture](docs/architecture.md)** - Enterprise infrastructure design
+- **[🔒 Security Framework](docs/security.md)** - Compliance and security standards  
+- **[📘 API Reference](docs/api-reference.md)** - Complete API documentation
+- **[🚀 Deployment Guide](docs/deployment-guide.md)** - Production deployment procedures
 
 ## Traction & Social Proof
 
@@ -167,5 +175,22 @@ cd frontend && pnpm install && pnpm run dev
 - GDPR and CCPA compliance built-in
 - Regulatory reporting tools for institutional clients
 - Partnership discussions with compliance providers
+
+## Links & Contact
+
+**🔗 External Integrations**
+- **Reflector Oracle**: [https://reflector.network/](https://reflector.network/) - Reliable price feeds
+- **Stellar Network**: Public network integration
+- **Live Demo**: https://risk-guardian-demo.vercel.app (if deployed)
+
+**📞 Contact & Support**
+- **Enterprise Sales**: contato@dgservices.com.br
+- **Technical Support**: contato@dgservices.com.br
+- **Partnership Inquiries**: contato@dgservices.com.br
+
+**🚀 Future Plans**
+- Q2 2025: Official SDKs release (Python, JavaScript)
+- Q3 2025: Multi-chain support (Ethereum, Solana)
+- Q4 2025: Institutional trading platform launch
 
 *MIT License - Production-ready codebase with comprehensive security measures*
