@@ -392,8 +392,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   // Connect to Ledger wallet
   const connectLedger = async (): Promise<string> => {
-    // For now, we'll show a message that Ledger support is coming soon
-    throw new Error('Ledger wallet support is coming soon. Please use Freighter or xBull for now.')
+    // Ledger requires USB/Bluetooth integration - complex implementation
+    throw new Error('🔒 Ledger Hardware Wallet Support\n\n• Hardware wallet integration requires USB/Bluetooth access\n• Advanced security features planned for enterprise version\n• Coming in Q3 2025 with full hardware wallet support\n\nFor now, please use Freighter or xBull wallets.')
   }
 
   // Validate Stellar address
@@ -426,26 +426,24 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       disableDemoMode()
       
       let publicKey: string
-      const type = addressOrType as 'freighter' | 'xbull' | 'ledger' | 'manual'
+      let walletType: 'freighter' | 'xbull' | 'ledger' | 'manual'
       
-      switch (type) {
-        case 'freighter':
-          publicKey = await connectFreighter()
-          break
-        case 'xbull':
-          publicKey = await connectXBull()
-          break
-        case 'ledger':
-          publicKey = await connectLedger()
-          break
-        case 'manual':
-          if (typeof addressOrType !== 'string' || !validateStellarAddress(addressOrType)) {
-            throw new Error('Invalid Stellar address provided')
-          }
-          publicKey = addressOrType
-          break
-        default:
-          throw new Error('Unsupported wallet type')
+      // Determine wallet type based on input
+      if (addressOrType === 'freighter') {
+        walletType = 'freighter'
+        publicKey = await connectFreighter()
+      } else if (addressOrType === 'xbull') {
+        walletType = 'xbull'
+        publicKey = await connectXBull()
+      } else if (addressOrType === 'ledger') {
+        walletType = 'ledger'
+        publicKey = await connectLedger()
+      } else if (typeof addressOrType === 'string' && validateStellarAddress(addressOrType)) {
+        // If it's a valid Stellar address, treat as manual
+        walletType = 'manual'
+        publicKey = addressOrType
+      } else {
+        throw new Error('Unsupported wallet type or invalid address')
       }
 
       // Ensure publicKey is a string and valid
@@ -469,14 +467,14 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         address: addressString,
         network: network,
         isConnected: true,
-        walletType: type,
+        walletType: walletType,
         isDemoMode: false
       }
 
       setWallet(newWallet)
       saveWalletToStorage(newWallet)
 
-      toast.showSuccess('Wallet Connected', `Successfully connected to ${type} wallet!`)
+      toast.showSuccess('Wallet Connected', `Successfully connected to ${walletType} wallet!`)
 
       // Create user in backend
       await createUserInBackend(addressString)

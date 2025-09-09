@@ -211,7 +211,7 @@ export function PortfolioCard({ portfolio, onAssetAdded }: PortfolioCardProps) {
             <div className="flex-1 min-w-0">
               <div className="grid grid-cols-1 gap-3">
                 {chartData.map((item, index) => (
-                  <div key={item.name} className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border">
+                  <div key={item.name} className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
                     <div className="flex items-center space-x-3">
                       <div 
                         className="w-4 h-4 rounded-full flex-shrink-0" 

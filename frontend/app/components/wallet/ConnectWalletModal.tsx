@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { X, Wallet, ChevronRight, ChevronDown } from 'lucide-react'
+import { X, Wallet, ChevronRight, ChevronDown, Key } from 'lucide-react'
 import { useWallet } from '../../contexts/WalletContext'
+import { useToast } from '../common/ToastProvider'
 import { WalletIcon } from './WalletIcons'
 
 // Wallet icons are now handled by WalletIcon component
@@ -14,6 +15,7 @@ interface ConnectWalletModalProps {
 
 export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps) {
   const { connectWallet, switchNetwork, wallet, isLoading } = useWallet()
+  const toast = useToast()
   const [manualAddress, setManualAddress] = useState('')
   const [showManualInput, setShowManualInput] = useState(false)
   const [sorobanDomain, setSorobanDomain] = useState('')
@@ -143,26 +145,62 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
 
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (manualAddress.trim()) {
-      setIsConnecting('manual')
-      try {
-        await connectWallet(manualAddress.trim(), wallet.network)
-        onClose()
-      } catch (error) {
-        // Error is handled by the context
-      } finally {
-        setIsConnecting(null)
-      }
+    if (!manualAddress.trim()) {
+      toast.showError('Validation Error', 'Please enter a valid Stellar address')
+      return
+    }
+
+    // Validate Stellar address format
+    if (!manualAddress.match(/^G[A-Z0-9]{55}$/)) {
+      toast.showError('Invalid Address', 'Address should start with G and be 56 characters long.')
+      return
+    }
+
+    setIsConnecting('manual')
+    try {
+      // For manual addresses, we pass the address directly
+      await connectWallet(manualAddress.trim(), wallet.network)
+      toast.showSuccess('Connected!', 'Successfully connected to tracked wallet')
+      onClose()
+      setManualAddress('') // Clear input on success
+    } catch (error: any) {
+      console.error('Manual address connection failed:', error)
+      toast.showError('Connection Failed', error.message || 'Please verify the address exists on the Stellar network.')
+    } finally {
+      setIsConnecting(null)
     }
   }
 
   const handleSorobanSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (sorobanDomain.trim()) {
-      // TODO: Implement Soroban domain resolution
-      console.log('Resolving Soroban domain:', sorobanDomain)
-      // For now, just show a placeholder
-      alert(`Domain resolution for "${sorobanDomain}" would be implemented here`)
+      // TODO: Real Soroban Domains implementation would be:
+      /*
+      setIsConnecting('soroban')
+      try {
+        // Import: import { resolveDomain } from '../../utils/sorobanDomains'
+        const resolvedAddress = await resolveDomain(sorobanDomain.trim())
+        
+        if (resolvedAddress) {
+          await connectWallet(resolvedAddress, wallet.network)
+          toast.showSuccess('Domain Resolved!', `${sorobanDomain} resolved to ${resolvedAddress.slice(0,8)}...`)
+          onClose()
+          setSorobanDomain('')
+        } else {
+          toast.showError('Resolution Failed', `Domain "${sorobanDomain}" not found`)
+        }
+      } catch (error: any) {
+        toast.showError('Domain Error', error.message)
+      } finally {
+        setIsConnecting(null)
+      }
+      */
+      
+      // Current placeholder implementation
+      toast.showInfo(
+        '🚀 Soroban Domains Coming Q2 2025!',
+        `Domain "${sorobanDomain}" will resolve to Stellar address. Like ENS for Ethereum, built on Soroban smart contracts.`
+      )
     }
   }
 
@@ -187,7 +225,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
     {
       id: 'ledger',
       name: 'Ledger',
-      description: 'Hardware wallet',
+      description: 'Hardware wallet (Q3 2025)',
       icon: 'ledger',
       isAvailable: false
     }
@@ -255,9 +293,7 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
           >
             <div className="flex items-center space-x-3">
               <div className="p-1.5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-md border border-blue-400/30">
-                <svg viewBox="0 0 24 24" className="h-4 w-4 text-blue-400" fill="currentColor">
-                  <path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3zm13.71-9.37l-1.34-1.34c-.39-.39-1.02-.39-1.41 0L9 12.25 11.75 15l8.96-8.96c.39-.39.39-1.02 0-1.41z"/>
-                </svg>
+                <Key className="h-4 w-4 text-blue-400" />
               </div>
               <div className="text-left">
                 <div className="font-medium text-white text-sm">Enter address manually</div>
@@ -278,9 +314,10 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
                 <input
                   type="text"
                   value={manualAddress}
-                  onChange={(e) => setManualAddress(e.target.value)}
-                  placeholder="GABC...XYZ"
-                  className="flex-1 px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent text-white placeholder-blue-200 text-sm"
+                  onChange={(e) => setManualAddress(e.target.value.toUpperCase())}
+                  placeholder="GABC...XYZ (56 characters)"
+                  className="flex-1 px-3 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent text-white placeholder-blue-200 text-sm font-mono"
+                  maxLength={56}
                 />
                 <button
                   type="submit"
@@ -297,15 +334,19 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
           {/* Soroban Domains */}
           <button
             onClick={() => setShowSorobanInput(!showSorobanInput)}
-            className="w-full flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm hover:bg-white/15 rounded-lg border border-white/20 transition-all duration-300"
+            className="w-full flex items-center justify-between p-3 bg-white/10 backdrop-blur-sm hover:bg-white/15 rounded-lg border border-white/20 transition-all duration-300 relative"
           >
+            {/* Coming Soon Badge */}
+            <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+              Q2 2025
+            </div>
             <div className="flex items-center space-x-3">
               <div className="p-1.5 bg-white/20 rounded-md">
                 <WalletIcon wallet="soroban" className="h-4 w-4" />
               </div>
               <div className="text-left">
                 <div className="font-medium text-white text-sm">Soroban Domains</div>
-                <div className="text-xs text-blue-200">Resolve domain to address</div>
+                <div className="text-xs text-blue-200">Decentralized DNS for Stellar (Coming Soon)</div>
               </div>
             </div>
             <ChevronRight className="h-4 w-4 text-blue-300" />
@@ -315,8 +356,8 @@ export function ConnectWalletModal({ isOpen, onClose }: ConnectWalletModalProps)
           {showSorobanInput && (
             <div className="space-y-3 p-3 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
               <div>
-                <h3 className="text-white font-medium text-sm mb-1">Soroban Domain</h3>
-                <p className="text-xs text-blue-200">Enter a domain name to resolve to Stellar address</p>
+                <h3 className="text-white font-medium text-sm mb-1">Soroban Domains (Preview)</h3>
+                <p className="text-xs text-blue-200">🚀 Coming Q2 2025: Use friendly names like "john.stellar" instead of long addresses</p>
               </div>
               <form onSubmit={handleSorobanSubmit} className="flex space-x-2">
                 <input
