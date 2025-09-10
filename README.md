@@ -196,7 +196,7 @@ cd frontend && pnpm install && pnpm run dev
 **🔗 External Integrations**
 - **Reflector Oracle**: [https://reflector.network/](https://reflector.network/) - Reliable price feeds
 - **Stellar Network**: Public network integration
-- **Live Demo**: https://risk-guardian-demo.vercel.app (if deployed)
+- **Live Demo**: [https://risk-guardian-demo.vercel.app](https://riskguardian.vercel.app/) (if deployed)
 
 **📞 Contact & Support**
 - **Enterprise Sales**: contato@dgservices.com.br
